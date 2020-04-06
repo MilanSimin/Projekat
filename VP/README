@@ -1,0 +1,19 @@
+
+Libraries needed for the python part of the project are: 
+		1) openCV
+		2) numpy
+		3) sys
+		4) math 
+		5) systemc
+
+
+How to start the program:
+
+Step 1: go to "test" folder where is the python code. Start the convert.py function with image name as argument of call 
+( example: python3 convert.py stelvio2.jpeg(here you choose which image you want to filter)) 
+
+Step 2: then go to folder VP, compile the program with makefile. 
+
+Step 3: after compiling has been done you can start the proogram with the next command ( example: ./myprog ), choose which type of image filtering you want.
+
+Step 4: after the program has successfully saved the new image in the "final_image.txt" file you can go to the "test" folder.Start the read.py function and an image will be displayed ( example: python3 read.py ) 
