@@ -7,7 +7,7 @@ use work.utils_pkg.all;
 entity conv_ip is
 generic (
      --MAYBE CHANGE THE WIDTH BACK TO 8?
-     WIDTH: integer := 8; --data width of pixels
+     WIDTH: integer := 9; --data width of pixels
      SIZE: integer := 3; --for kernel size
 	 MAX_SIZE: integer := 256; --maximum size of image
 	 ADDR_WIDTH : integer := 32 
@@ -26,12 +26,12 @@ port (
     a_en_o: out std_logic;
 -- Matrix B memory interface
 -- kernel matrix 3x3
-    b_addr_o: out std_logic_vector(2*log2c(SIZE*SIZE)-1 downto 0);
+    b_addr_o: out std_logic_vector(7 downto 0);
     b_data_i: in std_logic_vector(WIDTH-1 downto 0);
     b_en_o: out std_logic;
 --Dimension of the image 
-    columns: in std_logic_vector(log2c(MAX_SIZE)-1 downto 0);
-    lines: in std_logic_vector(log2c(MAX_SIZE)-1 downto 0);
+    columns: in std_logic_vector(7 downto 0);
+    lines: in std_logic_vector(7 downto 0);
 ------------------- Output data interface ------------------
 -- Matrix C memory interface after convolution
     c_addr_o: out std_logic_vector(ADDR_WIDTH-1 downto 0);
@@ -56,12 +56,12 @@ architecture beh of conv_ip is
     signal y_reg, y_next: unsigned(1 downto 0);-- only 2 bits,because the x and y will go 0-2 it doesn't go higher than that
 
     --signals for image
-    signal h_reg, h_next: unsigned(log2c(MAX_SIZE)-1 downto 0);-- signals for image, they will go from 0 to the end,horizontal and vertical
-    signal v_reg, v_next: unsigned(log2c(MAX_SIZE)-1 downto 0);-- end(depends on the size of image)
+    signal h_reg, h_next: unsigned(7 downto 0);-- signals for image, they will go from 0 to the end,horizontal and vertical
+    signal v_reg, v_next: unsigned(7 downto 0);-- end(depends on the size of image)
     
     --signals for addreses
     signal a_address_reg, a_address_next: unsigned(ADDR_WIDTH-1 downto 0);-- image address register
-    signal b_address_reg, b_address_next: unsigned(2*log2c(SIZE*SIZE)-1 downto 0); -- kernel address register
+    signal b_address_reg, b_address_next: unsigned(7 downto 0); -- kernel address register
     
     --temporary register after multiplication
     signal temp_reg3, temp_next3 : signed(2*WIDTH-1 downto 0);
@@ -150,14 +150,14 @@ begin
              end if;
         when reset_V =>
                       
-             v_next <= to_unsigned(0, log2c(MAX_SIZE)); --set value to 0
+             v_next <= to_unsigned(0, 8); --set value to 0
              c_addres_next <= to_unsigned(0,ADDR_WIDTH);
     
              state_next <= reset_H;
             
          when reset_H =>
          
-             h_next <= to_unsigned(0, log2c(MAX_SIZE)); --set value to 0
+             h_next <= to_unsigned(0, 8); --set value to 0
              state_next <= reset_temp_and_X;
          
          when reset_temp_and_X =>

@@ -7,7 +7,7 @@ use work.utils_pkg.all;
 entity image_conv_new_v1_0_S00_AXI is
 	generic (
 		-- Users to add parameters here
-        WIDTH : integer := 8;
+        WIDTH : integer := 9;
         MAX_SIZE : integer := 256;
 		-- User parameters ends
 		-- Do not modify the parameters beyond this line
@@ -19,13 +19,13 @@ entity image_conv_new_v1_0_S00_AXI is
 	);
 	port (
 		-- Users to add ports here
-        reg_data_o : out std_logic_vector(log2c(MAX_SIZE)-1 downto 0);
+        reg_data_o : out std_logic_vector(7 downto 0);
         columns_wr_o : out std_logic; 
         lines_wr_o : out std_logic;
         cmd_wr_o : out std_logic;
         
-        columns_axi_i : in std_logic_vector(log2c(MAX_SIZE)-1 downto 0);
-        lines_axi_i : in std_logic_vector(log2c(MAX_SIZE)-1 downto 0);
+        columns_axi_i : in std_logic_vector(7 downto 0);
+        lines_axi_i : in std_logic_vector(7 downto 0);
         cmd_axi_i : in std_logic;
         status_axi_i : in std_logic;
 		-- User ports ends
@@ -370,7 +370,7 @@ process (columns_axi_i,lines_axi_i,cmd_axi_i,status_axi_i, axi_araddr, S_AXI_ARE
     process (S_AXI_ACLK)
     begin
         if(S_AXI_ACLK'event and S_AXI_ACLK ='1')then
-            reg_data_o <= S_AXI_WDATA(log2c(MAX_SIZE)-1 downto 0);
+            reg_data_o <= S_AXI_WDATA(7 downto 0);
          end if;
      end process;
 	-- User logic ends

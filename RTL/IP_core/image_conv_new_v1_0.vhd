@@ -6,7 +6,7 @@ use ieee.numeric_std.all;
 entity image_convolution_new_v1_0 is
 	generic (
 		-- Users to add parameters here
-        WIDTH : integer := 8;
+        WIDTH : integer := 9;
         MAX_SIZE : integer := 256;
         SIZE : integer := 3;
         ADDR_WIDTH : integer := 32;

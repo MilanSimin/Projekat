@@ -9,7 +9,7 @@ end entity;
 
 architecture beh of IP_testbench is
     
-    constant DATA_WIDTH_c : integer := 8;
+    constant DATA_WIDTH_c : integer := 9;
 	constant ADDR_WIDTH_c : integer := 32;
     constant MAX_SIZE_c : integer := 256;
     constant SIZE_c : integer :=3 ;
@@ -21,31 +21,31 @@ architecture beh of IP_testbench is
     
     ---------------------- TEST 1-----------------------
     --RESULTS: 54, 63, 90, 99
-    constant columns_c : integer := 4;
-    constant lines_c : integer := 4;
-    type mem_t is array (0 to columns_c*lines_c-1) of integer;
-    type mem_kernel is array (0 to SIZE_c*SIZE_c-1) of integer;
-    constant MEM_A_CONTENT_c: mem_t :=
-        (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+    --constant columns_c : integer := 4;
+    --constant lines_c : integer := 4;
+    --type mem_t is array (0 to columns_c*lines_c-1) of integer;
+    --type mem_kernel is array (0 to SIZE_c*SIZE_c-1) of integer;
+    --constant MEM_A_CONTENT_c: mem_t :=
+      --  (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
     
     
-    constant MEM_B_CONTENT_c: mem_kernel := 
-        ( 1,1,1,1,1,1,1,1,1);
+    --constant MEM_B_CONTENT_c: mem_kernel := 
+      --  ( 1,1,1,1,1,1,1,1,1);
         
         
     ---------------------- TEST 2-----------------------
     --RESULTS: 81, 90, 99, 108, 117, 144, 153, 162, 171, 180
-    --constant columns_c : integer := 7;
-    --constant lines_c : integer := 4;
-    --type mem_t is array (0 to columns_c*lines_c-1) of integer;
-    --type mem_kernel is array (0 to SIZE_c*SIZE_c-1) of integer;  
+    constant columns_c : integer := 7;
+    constant lines_c : integer := 4;
+    type mem_t is array (0 to columns_c*lines_c-1) of integer;
+    type mem_kernel is array (0 to SIZE_c*SIZE_c-1) of integer;  
     
-    --constant MEM_A_CONTENT_c: mem_t :=
-    --(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28);
+    constant MEM_A_CONTENT_c: mem_t :=
+    (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28);
     
     
-    --constant MEM_B_CONTENT_c: mem_kernel := 
-    --( 1,1,1,1,1,1,1,1,1);        
+    constant MEM_B_CONTENT_c: mem_kernel := 
+    ( 1,1,1,1,1,1,1,1,1);        
         
     ---------------------TEST 3------------------------
     --RESULTS: 255, 255, 255, 0, 0, 0, 10, 82, 164, 0, 0, 0
@@ -82,7 +82,7 @@ architecture beh of IP_testbench is
     signal tb_a_we_i      : std_logic;
 	
 	signal tb_b_en_i      : std_logic;
-    signal tb_b_addr_i    : std_logic_vector(2*log2c(SIZE_C*SIZE_C)-1 downto 0);
+    signal tb_b_addr_i    : std_logic_vector(7 downto 0);
     signal tb_b_data_i    : std_logic_vector(DATA_WIDTH_c-1 downto 0);
     signal tb_b_we_i      : std_logic; 
 	
@@ -98,7 +98,7 @@ architecture beh of IP_testbench is
     signal ip_a_data    : std_logic_vector(DATA_WIDTH_c-1 downto 0);
 	
 	signal ip_b_en      : std_logic;
-    signal ip_b_addr    : std_logic_vector(2*log2c(SIZE_C*SIZE_C)-1 downto 0);
+    signal ip_b_addr    : std_logic_vector(7 downto 0);
     signal ip_b_data    : std_logic_vector(DATA_WIDTH_c-1 downto 0);
     signal ip_b_we      : std_logic; 
 	
