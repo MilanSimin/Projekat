@@ -54,10 +54,10 @@ u32 *tx_vir_buffer;
 //****************************** FUNCTION PROTOTYPES ****************************************
 static int IFS_probe (struct platform_device *pdev);
 static int IFS_remove (struct platform_device *pdev);
-static int IFS_open (struct inode*, struct file*);
-static int IFS_close (struct inode*, struct file*);
-static ssize_t IFS_read (struct file*, char*, size_t, loff_t*);
-static ssize_t IFS_write (struct file*, const char*, size_t, loff_t*);
+static int IFS_open (struct inode *pinode, struct file *pfile);
+static int IFS_close (struct inode *pinode, struct file *pfile);
+static ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *offset);
+static ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, loff_t *offset);
 int IFS_mmap (struct file *f, struct vm_area_struct *vma_s);
 
 static int __init IFS_init(void);
@@ -168,18 +168,27 @@ int IFS_close (struct inode *pinode, struct file *pfile){
 
 }
 
-ssize_t IFS_read (struct file *pfile, char __user *buffer, size_t length, loff_t *offset){
+ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *offset){
 
-	//int​ minor = MINOR(pfile->f_inode->i_rdev);
-
+	int ret;
+	char buff[BUFF_SIZE];
+	int len;
+	int minor = MINOR(pfile->f_inode->i_rdev);
+	
+	len = ioread32(ip->base_addr);
+	//len = scnprintf(buff, BUFF_SIZE, "%d\n", storage[minor]);
+	ret = copy_to_user(buffer, buff, len);
+	if(ret)
+		return -EFAULT;
 	printk(KERN_INFO "Provera read file \n");
-	return 0;
+	return len;
+
 }
 
-ssize_t IFS_write (struct file *pfile, const char __user *buffer, size_t length, loff_t *offset){
+ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, loff_t *offset){
 
 	char buff[BUFF_SIZE];
-	int​ minor = MINOR(pfile->f_inode->i_rdev);
+	int minor = MINOR(pfile->f_inode->i_rdev);
 	int ret = 0;
 	unsigned int xpos=0,ypos=0;
 	unsigned long long rgb=0;
