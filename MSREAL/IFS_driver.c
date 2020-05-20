@@ -172,16 +172,43 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 	int ret;
 	char buff[BUFF_SIZE];
 	int len;
+	int value;
 	int minor = MINOR(pfile->f_inode->i_rdev);
-	
-	len = ioread32(ip->base_addr + position);
-	//len = scnprintf(buff, BUFF_SIZE, "%d\n", storage[minor]);
-	ret = copy_to_user(buf, buff, len);
-	if(ret)
-		return -EFAULT;
-	printk(KERN_INFO "Provera read file, %d \n",len);
-	return len;
 
+	switch(minor){
+	
+		case 0:
+
+			value = ioread32(ip->base_addr + position);
+			len = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+			ret = copy_to_user(buf, buff, len);
+			if(ret)
+				return -EFAULT;
+			printk(KERN_INFO "Provera read file, %d \n",len);
+			return len;
+
+		break;
+
+		case 1:
+
+			len = ioread32(ip->base_addr + position);
+			//len = scnprintf(buff, BUFF_SIZE, "%d\n", storage[minor]);
+			ret = copy_to_user(buf, buff, length);
+			if(ret)
+				return -EFAULT;
+			printk(KERN_INFO "Provera read file, %d \n",len);
+			return len;
+
+		break;
+
+
+
+		default:
+			printk(KERN_INFO"somethnig went wrong\n");
+	}
+	
+	
+	return 0;
 }
 
 ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, loff_t *offset){
@@ -217,7 +244,7 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				}
 				else
 				{
-					position = (255*ypos+xpos)*4
+					position = (255*ypos+xpos)*4;
 					iowrite32(rgb,ip->base_addr + position);
 				}
 			}
@@ -243,7 +270,7 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				}
 				else
 				{
-					position = (3*ypos+xpos)*4
+					position = (3*ypos+xpos)*4;
 					iowrite32(rgb,ip->base_addr + position);
 				}
 			}
@@ -272,7 +299,7 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 	printk(KERN_INFO "Provera write file success \n");	
 	
 	
-
+	return 0;
 }
 
 int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
