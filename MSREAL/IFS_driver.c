@@ -48,8 +48,7 @@ static struct device *my_device;
 static struct cdev *my_cdev;
 static struct IFS_info *ip = NULL;
 
-dma_addr_t tx_phy_buffer;
-u32 *tx_vir_buffer;
+int position = 0;
 
 //****************************** FUNCTION PROTOTYPES ****************************************
 static int IFS_probe (struct platform_device *pdev);
@@ -175,12 +174,12 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 	int len;
 	int minor = MINOR(pfile->f_inode->i_rdev);
 	
-	len = ioread32(ip->base_addr);
+	len = ioread32(ip->base_addr + position);
 	//len = scnprintf(buff, BUFF_SIZE, "%d\n", storage[minor]);
-	ret = copy_to_user(buffer, buff, len);
+	ret = copy_to_user(buf, buff, len);
 	if(ret)
 		return -EFAULT;
-	printk(KERN_INFO "Provera read file \n");
+	printk(KERN_INFO "Provera read file, %d \n",len);
 	return len;
 
 }
@@ -218,8 +217,8 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				}
 				else
 				{
-					iowrite32((256*ypos + xpos)*4, ip->base_addr);
-					iowrite32(rgb,ip->base_addr);
+					position = (255*ypos+xpos)*4
+					iowrite32(rgb,ip->base_addr + position);
 				}
 			}
 			else
@@ -244,8 +243,8 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				}
 				else
 				{
-					iowrite32((3*ypos + xpos)*4, ip->base_addr);
-					iowrite32(rgb,ip->base_addr);
+					position = (3*ypos+xpos)*4
+					iowrite32(rgb,ip->base_addr + position);
 				}
 			}
 			else
@@ -270,7 +269,7 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 
 	}
 
-	printk(KERN_INFO "Provera write file \n");	
+	printk(KERN_INFO "Provera write file success \n");	
 	
 	
 
