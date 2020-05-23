@@ -29,17 +29,16 @@
 #define DEVICE_NAME "IFS"
 
 MODULE_AUTHOR ("FTN");
-MODULE_DESCRIPTION("Test Driver for VGA controller IP.");
+MODULE_DESCRIPTION("Test Driver for Image Filtering system.");
 MODULE_LICENSE("Dual BSD/GPL");
-MODULE_ALIAS("custom:vga_dma controller");
+MODULE_ALIAS("custom:IFS");
 
-//****************************** GLOBAL VARIABLES *******************************************
-
+//********************************************GLOBAL VARIABLES *****************************************//
 struct IFS_info {
 	unsigned long mem_start;
 	unsigned long mem_end;
 	void __iomem *base_addr;
-	
+
 };
 
 dev_t my_dev_id;
@@ -50,7 +49,7 @@ static struct IFS_info *ip = NULL;
 
 int position = 0;
 
-//****************************** FUNCTION PROTOTYPES ****************************************
+//****************************** FUNCTION PROTOTYPES ****************************************//
 static int IFS_probe (struct platform_device *pdev);
 static int IFS_remove (struct platform_device *pdev);
 static int IFS_open (struct inode *pinode, struct file *pfile);
@@ -64,7 +63,7 @@ static void __exit IFS_exit(void);
 
 struct file_operations my_fops =
 {
-	.owner = THIS_MODULE,	
+	.owner = THIS_MODULE,
 	.read = IFS_read,
 	.write = IFS_write,
 	.open = IFS_open,
@@ -74,7 +73,7 @@ struct file_operations my_fops =
 };
 
 static struct of_device_id IFS_of_match[] = {
-	
+
 	{ .compatible = "bram_image", },
 	{ .compatible = "bram_kernel", },
 	{ .compatible = "bram_after_conv" },
@@ -85,13 +84,13 @@ static struct of_device_id IFS_of_match[] = {
 MODULE_DEVICE_TABLE(of, IFS_of_match);
 
 static struct platform_driver IFS_driver = {
-	
+
 	.driver = {
 		.name = DRIVER_NAME,
 		.owner = THIS_MODULE,
 		.of_match_table = IFS_of_match,
 		},
-		
+
 	.probe = IFS_probe,
 	.remove = IFS_remove,
 };
@@ -99,21 +98,27 @@ static struct platform_driver IFS_driver = {
 
 static int IFS_probe (struct platform_device *pdev) {
 
+	//printk(KERN_INFO "Provera 1\n");
 	struct resource *r_mem;
 	int rc = 0;
 	r_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if(!r_mem){
 		printk(KERN_ALERT "Failed to get resource\n");
 		return -ENODEV;
-	} 
+	}
+	//printk(KERN_INFO "Provera 2\n");
+
 	ip = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
 	if(!ip){
 		printk(KERN_ALERT "Could not allocate memory\n");
 		return -ENOMEM;
 	}
+	//printk(KERN_INFO "Provera 3\n");
+
 	ip->mem_start = r_mem->start;
 	ip->mem_end = r_mem->end;
-	//printk(KERN_INFO "Start address:%x \t end address:%x", r_mem->start, r_mem->end);
+	printk(KERN_INFO "Start address:%x \t end address:%x", r_mem->start, r_mem->end);
+	//printk(KERN_INFO "Provera 4\n");
 
 
 	if(!request_mem_region(ip->mem_start, ip->mem_end - ip-> mem_start + 1, "IFS")){
@@ -122,6 +127,7 @@ static int IFS_probe (struct platform_device *pdev) {
 		goto error1;
 
 	}
+	//	printk(KERN_INFO "Provera 5\n");
 
 	ip->base_addr = ioremap(ip->mem_start, ip->mem_end - ip->mem_start +1);
 
@@ -130,8 +136,9 @@ static int IFS_probe (struct platform_device *pdev) {
 		rc = -EIO;
 		goto error2;
 	}
+	//printk(KERN_INFO "Provera 6\n");
 
-	printk(KERN_WARNING "led platform driver registered\n");
+	printk(KERN_WARNING "IFS driver registered\n");
  	return 0;//ALL OK
 
 	error2:
@@ -143,11 +150,16 @@ static int IFS_probe (struct platform_device *pdev) {
 
 static int IFS_remove(struct platform_device *pdev)
 {
-	printk(KERN_WARNING "IFS platform driver removed\n");
-	iowrite32(0, ip->base_addr);
+	int i=0;
+	printk(KERN_WARNING "IFS platform driver removing\n");
+	for(i=0; i<2040; i++)
+	{
+		iowrite32(0, ip->base_addr + i*4);
+	}
 	iounmap(ip->base_addr);
 	release_mem_region(ip->mem_start, ip->mem_end - ip->mem_start + 1);
 	kfree(ip);
+	printk(KERN_INFO"IFS_remove: IFS driver removed\n");
 	return 0;
 }
 
@@ -159,7 +171,7 @@ int IFS_open (struct inode *pinode, struct file *pfile){
 	return 0;
 
 }
-	
+
 int IFS_close (struct inode *pinode, struct file *pfile){
 
 	printk(KERN_INFO "Succesfully closed file\n");
@@ -171,34 +183,41 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 
 	int ret;
 	char buff[BUFF_SIZE];
-	int len;
+	int len,temp;
 	int value;
 	int minor = MINOR(pfile->f_inode->i_rdev);
-
+	//value =ioread32(ip->base_addr + position);
+	//printk(KERN_INFO "value is: %d\n",value);
 	switch(minor){
-	
+
 		case 0:
 
-			value = ioread32(ip->base_addr + position);
-			len = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+			value  = ioread32(ip->base_addr + position);
+			printk (KERN_INFO "value is: %d\n",value);
+			printk(KERN_INFO "position is: %d\n",position);
+			temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
 			ret = copy_to_user(buf, buff, len);
-			if(ret)
+			if(ret){
 				return -EFAULT;
-			printk(KERN_INFO "Provera read file, %d \n",len);
+			}
+			//printk(KERN_INFO "Provera read file, %d \n",value);
 			return len;
 
 		break;
 
 		case 1:
 
-			len = ioread32(ip->base_addr + position);
-			//len = scnprintf(buff, BUFF_SIZE, "%d\n", storage[minor]);
-			ret = copy_to_user(buf, buff, length);
-			if(ret)
+			value = ioread32(ip->base_addr + position);
+			printk(KERN_INFO "value is: %d\n",value);
+			printk(KERN_INFO "position is: %d\n",position);
+			temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+			ret = copy_to_user(buf, buff, len);
+			if(ret){
 				return -EFAULT;
-			printk(KERN_INFO "Provera read file, %d \n",len);
-			return len;
+			}
+			//printk(KERN_INFO "Provera read file, %d \n",value);
 
+			return len;
 		break;
 
 
@@ -206,8 +225,7 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 		default:
 			printk(KERN_INFO"somethnig went wrong\n");
 	}
-	
-	
+
 	return 0;
 }
 
@@ -217,23 +235,24 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 	int minor = MINOR(pfile->f_inode->i_rdev);
 	int ret = 0;
 	unsigned int xpos=0,ypos=0;
-	unsigned long long rgb=0;
-	unsigned char rgb_buff[10];
-	ret = copy_from_user(buff, buf, length);  
+	unsigned int rgb=0;
+	//unsigned char rgb_buff[10];
+	ret = copy_from_user(buff, buf, length);
+	//printk(KERN_INFO "minor is: %d \n",minor);  
 	if(ret){
 		printk("copy from user failed \n");
 		return -EFAULT;
-	}  
+	}
 	buff[length] = '\0';
 
-	sscanf(buff,"%d,%d,%s", &xpos, &ypos, rgb_buff);  
-	ret = kstrtoull(rgb_buff, 0, &rgb);
+	sscanf(buff,"%d,%d,%d", &xpos, &ypos, &rgb);  
+	//ret = kstrtoull(rgb_buff, 0, &rgb);
 
 	switch(minor){
 
 		case 0:
 			if(ret != -EINVAL) //checking for parsing error
-			{
+				{
 				if (xpos > 255)
 				{
 					printk(KERN_WARNING "IFS_write: X_axis position exceeded, maximum is 255 and minimum 0 \n");
@@ -245,18 +264,19 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				else
 				{
 					position = (255*ypos+xpos)*4;
-					iowrite32(rgb,ip->base_addr + position);
+					printk(KERN_INFO "position is: %d\n",position);
+					printk(KERN_INFO "value is: %d\n",rgb);
+					iowrite32(rgb,ip->base_addr+position);
 				}
 			}
 			else
 			{
 				printk(KERN_WARNING "IFS_write: Wrong write format\n");
 				// return -EINVAL; //parsing error
-			}        
-			return length;
-			
+			}
+				return length;
 			break;
-	
+
 		case 1:
 			if(ret != -EINVAL) //checking for parsing error
 			{
@@ -270,35 +290,37 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				}
 				else
 				{
+
 					position = (3*ypos+xpos)*4;
-					iowrite32(rgb,ip->base_addr + position);
+					printk(KERN_INFO"position is: %d\n",position);
+					printk(KERN_INFO "value is :  %d\n",rgb);
+					iowrite32(rgb,ip->base_addr+position);
 				}
 			}
 			else
 			{
 				printk(KERN_WARNING "IFS_write: Wrong write format\n");
-				// return -EINVAL; //parsing error
-			}        
+				//return -EINVAL; //parsing error
+			}
 			return length;
-	
+
 			break;
 
-		case 2: 
-		
+		case 2:
+
 			break;
-	
-		case 3: 
+
+		case 3:
 
 			break;
 
 		default:
 			printk(KERN_INFO"somethnig went wrong\n");
-
+	break;
 	}
 
-	printk(KERN_INFO "Provera write file success \n");	
-	
-	
+	printk(KERN_INFO "Provera write file success \n");
+
 	return 0;
 }
 
