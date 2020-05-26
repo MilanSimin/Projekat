@@ -1,6 +1,6 @@
 #include <linux/init.h>
 #include <linux/module.h>
-#include <linux/fs.h>	
+#include <linux/fs.h>
 #include <linux/types.h>
 #include <linux/cdev.h>
 #include <linux/kdev_t.h>
@@ -19,11 +19,8 @@
 #include <linux/of.h>//of match table
 #include <linux/ioport.h>//ioremap
 
-#include <linux/dma-mapping.h>  //dma access
-#include <linux/mm.h>  //dma access
-#include <linux/interrupt.h>  //interrupt handlers
 
-#define BUFF_SIZE 20
+#define BUFF_SIZE 30
 #define DRIVER_NAME "IFS_DRIVER"
 #define MAX_PKT_LEN 256*256*4
 #define DEVICE_NAME "IFS"
@@ -48,6 +45,7 @@ static struct cdev *my_cdev;
 static struct IFS_info *ip = NULL;
 
 int position = 0;
+int number = 0;
 
 //****************************** FUNCTION PROTOTYPES ****************************************//
 static int IFS_probe (struct platform_device *pdev);
@@ -74,6 +72,8 @@ struct file_operations my_fops =
 
 static struct of_device_id IFS_of_match[] = {
 
+
+	{ .compatible = "image_conv", },
 	{ .compatible = "bram_image", },
 	{ .compatible = "bram_kernel", },
 	{ .compatible = "bram_after_conv" },
@@ -98,7 +98,7 @@ static struct platform_driver IFS_driver = {
 
 static int IFS_probe (struct platform_device *pdev) {
 
-	//printk(KERN_INFO "Provera 1\n");
+
 	struct resource *r_mem;
 	int rc = 0;
 	r_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
@@ -106,19 +106,16 @@ static int IFS_probe (struct platform_device *pdev) {
 		printk(KERN_ALERT "Failed to get resource\n");
 		return -ENODEV;
 	}
-	//printk(KERN_INFO "Provera 2\n");
 
 	ip = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
 	if(!ip){
 		printk(KERN_ALERT "Could not allocate memory\n");
 		return -ENOMEM;
 	}
-	//printk(KERN_INFO "Provera 3\n");
 
 	ip->mem_start = r_mem->start;
 	ip->mem_end = r_mem->end;
 	printk(KERN_INFO "Start address:%x \t end address:%x", r_mem->start, r_mem->end);
-	//printk(KERN_INFO "Provera 4\n");
 
 
 	if(!request_mem_region(ip->mem_start, ip->mem_end - ip-> mem_start + 1, "IFS")){
@@ -127,7 +124,6 @@ static int IFS_probe (struct platform_device *pdev) {
 		goto error1;
 
 	}
-	//	printk(KERN_INFO "Provera 5\n");
 
 	ip->base_addr = ioremap(ip->mem_start, ip->mem_end - ip->mem_start +1);
 
@@ -136,7 +132,7 @@ static int IFS_probe (struct platform_device *pdev) {
 		rc = -EIO;
 		goto error2;
 	}
-	//printk(KERN_INFO "Provera 6\n");
+
 
 	printk(KERN_WARNING "IFS driver registered\n");
  	return 0;//ALL OK
@@ -152,7 +148,7 @@ static int IFS_remove(struct platform_device *pdev)
 {
 	int i=0;
 	printk(KERN_WARNING "IFS platform driver removing\n");
-	for(i=0; i<2040; i++)
+	for(i=0; i<16384; i++)
 	{
 		iowrite32(0, ip->base_addr + i*4);
 	}
@@ -181,24 +177,25 @@ int IFS_close (struct inode *pinode, struct file *pfile){
 
 ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *offset){
 
-	int ret;
+	int ret, i=0, pos=0;
 	char buff[BUFF_SIZE];
 	int len,temp;
-	int value;
+	int value, status, cmd, lines, columns, after_conv;
 	int minor = MINOR(pfile->f_inode->i_rdev);
-	//value =ioread32(ip->base_addr + position);
-	//printk(KERN_INFO "value is: %d\n",value);
 	switch(minor){
 
 		case 0:
-
-			value  = ioread32(ip->base_addr + position);
-			printk (KERN_INFO "value is: %d\n",value);
-			printk(KERN_INFO "position is: %d\n",position);
-			temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
-			ret = copy_to_user(buf, buff, len);
-			if(ret){
+			for(i=0; i<number;i++)
+			{
+				pos = position + i*4;
+				value  = ioread32(ip->base_addr + pos);
+				printk (KERN_INFO "value is: %d\n",value);
+				printk(KERN_INFO "position is: %d\n",pos);
+				temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+				ret = copy_to_user(buf, buff, len);
+				if(ret){
 				return -EFAULT;
+				}
 			}
 			//printk(KERN_INFO "Provera read file, %d \n",value);
 			return len;
@@ -220,7 +217,37 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 			return len;
 		break;
 
+		case 2:
 
+			after_conv = ioread32(ip->base_addr);
+			printk(KERN_INFO"after_conv is: %d \n", after_conv);
+			temp = scnprintf(buff, BUFF_SIZE, "%d\n", after_conv);
+			ret=copy_to_user(buf,buff,len);
+			if(ret)
+			{
+				return -EFAULT;
+			}
+			return len;
+
+		break;
+
+		case 3:
+			status = ioread32(ip->base_addr+12);
+			printk(KERN_INFO"Ready is: %d\n", status);
+			cmd = ioread32(ip->base_addr +8);
+			printk(KERN_INFO"Cmd is: %d\n", cmd);
+			lines = ioread32(ip->base_addr+4);
+			printk(KERN_INFO"Lines is: %d\n", lines);
+			columns = ioread32(ip->base_addr);
+			printk(KERN_INFO"Columns is: %d\n", columns);
+			temp = scnprintf(buff, BUFF_SIZE, "%d\n", lines);
+			ret=copy_to_user(buf,buff,len);
+			if(ret)
+			{
+				return -EFAULT;
+			}
+			return len;
+		break;
 
 		default:
 			printk(KERN_INFO"somethnig went wrong\n");
@@ -233,21 +260,32 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 
 	char buff[BUFF_SIZE];
 	int minor = MINOR(pfile->f_inode->i_rdev);
-	int ret = 0;
-	unsigned int xpos=0,ypos=0;
+	int ret = 0, i = 0, pos=0;
+	unsigned int xpos=0, ypos=0;
 	unsigned int rgb=0;
-	//unsigned char rgb_buff[10];
 	ret = copy_from_user(buff, buf, length);
-	//printk(KERN_INFO "minor is: %d \n",minor);  
+
 	if(ret){
 		printk("copy from user failed \n");
 		return -EFAULT;
 	}
 	buff[length] = '\0';
+	printk(KERN_INFO "FIRST: %c\n", buff[0]);
+	printk(KERN_INFO "SECOND: %c\n", buff[1]);
+	printk(KERN_INFO "THIRD: %c\n", buff[2]);
 
-	sscanf(buff,"%d,%d,%d", &xpos, &ypos, &rgb);  
-	//ret = kstrtoull(rgb_buff, 0, &rgb);
+	if(buff[0] == '(')
+	{
 
+		sscanf(buff,"(%d,%d);%d", &xpos, &ypos, &rgb); 
+		printk(KERN_INFO "Prvi slucaj, bez broja pre (\n");
+
+	} else {
+
+		sscanf(buff, "%d(%d,%d);%d", &number, &xpos, &ypos, &rgb);
+		printk(KERN_INFO "Drugi slucaj, sa brojem pre (\n");
+
+	}
 	switch(minor){
 
 		case 0:
@@ -263,10 +301,15 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				}
 				else
 				{
+					printk(KERN_INFO "number is: %d",number );
 					position = (255*ypos+xpos)*4;
-					printk(KERN_INFO "position is: %d\n",position);
-					printk(KERN_INFO "value is: %d\n",rgb);
-					iowrite32(rgb,ip->base_addr+position);
+					for(i=0; i<number; i++)
+					{
+						pos = position +i*4;
+						printk(KERN_INFO "position is: %d\n",pos);
+						printk(KERN_INFO "value is: %d\n",rgb);
+						iowrite32(rgb,ip->base_addr+pos);
+					}
 				}
 			}
 			else
@@ -308,9 +351,19 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 
 		case 2:
 
+			printk(KERN_WARNING "IFS_write: cannot write in this BRAM \n");
+
 			break;
 
 		case 3:
+			if (ret != -EINVAL){
+				iowrite32(xpos, ip->base_addr); //columns
+				iowrite32(ypos, ip->base_addr +4); //lines
+				iowrite32(number, ip->base_addr +8); //cmd
+				iowrite32(rgb, ip->base_addr +12); //status
+
+			}
+			return length;
 
 			break;
 
@@ -335,14 +388,14 @@ int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
 	if (vsize > psize)
 	{
 		printk(KERN_ERR "Trying to mmap more space than it's allocated, mmap failed\n");
-		return -EIO;		
+		return -EIO;
 	}
 	ret = vm_iomap_memory(vma_s, ip->mem_start, vsize);
-	if(ret) 
-	{	
+	if(ret)
+	{
 		printk(KERN_ERR "memory maped failed\n");
-		return ret;	
-		
+		return ret;
+
 	}
 	printk(KERN_INFO "MMAP is a success\n");
 	return 0;
@@ -388,7 +441,7 @@ static int __init IFS_init(void)
 	}
 	printk(KERN_INFO "created BRAM_AFTER_CONV\n");
 	my_device = device_create(my_class, NULL, MKDEV(MAJOR(my_dev_id),3), NULL, "IFS");
-	
+
 	if(my_device == NULL){
 		printk(KERN_ERR "Failde to create device IFS\n");
 		goto fail_1;
@@ -402,13 +455,13 @@ static int __init IFS_init(void)
 	if(ret)
 	{
 		printk(KERN_ERR "Failde to add cdev \n");
-		goto fail_2;	
+		goto fail_2;
 	}
 	printk(KERN_INFO "cdev_added\n");
 	printk(KERN_INFO "Hello from IFS_driver\n");
 
 	return platform_driver_register(&IFS_driver);
-	
+
 	fail_2:
 		device_destroy(my_class, my_dev_id);
 	fail_1:
@@ -421,7 +474,7 @@ static int __init IFS_init(void)
 
 static void __exit IFS_exit(void)
 {
-	
+
 	platform_driver_unregister(&IFS_driver);
 	cdev_del(my_cdev);
 	device_destroy(my_class, MKDEV(MAJOR(my_dev_id),0));
