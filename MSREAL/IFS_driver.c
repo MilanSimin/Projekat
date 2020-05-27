@@ -126,6 +126,7 @@ static int IFS_probe (struct platform_device *pdev) {
 	}
 
 	ip->base_addr = ioremap(ip->mem_start, ip->mem_end - ip->mem_start +1);
+	//printk(KERN_INFO "Start address:%x \t end address:%x\n", ip->mem_start, ip->mem_end);
 
 	if(!ip->base_addr){
 		printk(KERN_ALERT "Could not allocate memory\n");
@@ -148,7 +149,7 @@ static int IFS_remove(struct platform_device *pdev)
 {
 	int i=0;
 	printk(KERN_WARNING "IFS platform driver removing\n");
-	for(i=0; i<16384; i++)
+	for(i=0; i<2000; i++)
 	{
 		iowrite32(0, ip->base_addr + i*4);
 	}
@@ -185,37 +186,34 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 	switch(minor){
 
 		case 0:
-			for(i=0; i<number;i++)
+			for(i=0; i<20; i++)
 			{
 				pos = position + i*4;
 				value  = ioread32(ip->base_addr + pos);
 				printk (KERN_INFO "value is: %d\n",value);
-				printk(KERN_INFO "position is: %d\n",pos);
+				printk (KERN_INFO "position is: %d\n",pos);
+				//temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+				ret = copy_to_user(buf, value, len);
+				if(ret){
+					return -EFAULT;
+				}
+			}
+			break;
+
+
+		case 1:
+			for(i=0; i<10;i++){
+				value = ioread32(ip->base_addr + i*4);
+				printk(KERN_INFO "value is: %d\n",value);
+				printk(KERN_INFO "position is: %d\n",i*4);
 				temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
 				ret = copy_to_user(buf, buff, len);
 				if(ret){
-				return -EFAULT;
+					return -EFAULT;
 				}
 			}
-			//printk(KERN_INFO "Provera read file, %d \n",value);
-			return len;
+			break;
 
-		break;
-
-		case 1:
-
-			value = ioread32(ip->base_addr + position);
-			printk(KERN_INFO "value is: %d\n",value);
-			printk(KERN_INFO "position is: %d\n",position);
-			temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
-			ret = copy_to_user(buf, buff, len);
-			if(ret){
-				return -EFAULT;
-			}
-			//printk(KERN_INFO "Provera read file, %d \n",value);
-
-			return len;
-		break;
 
 		case 2:
 
@@ -227,9 +225,7 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 			{
 				return -EFAULT;
 			}
-			return len;
-
-		break;
+			break;
 
 		case 3:
 			status = ioread32(ip->base_addr+12);
@@ -246,14 +242,13 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 			{
 				return -EFAULT;
 			}
-			return len;
-		break;
 
+			break;
 		default:
 			printk(KERN_INFO"somethnig went wrong\n");
 	}
 
-	return 0;
+	return len;
 }
 
 ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, loff_t *offset){
@@ -270,22 +265,23 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 		return -EFAULT;
 	}
 	buff[length] = '\0';
-	printk(KERN_INFO "FIRST: %c\n", buff[0]);
-	printk(KERN_INFO "SECOND: %c\n", buff[1]);
-	printk(KERN_INFO "THIRD: %c\n", buff[2]);
+	//printk(KERN_INFO "FIRST: %c\n", buff[0]);
+	//printk(KERN_INFO "SECOND: %c\n", buff[1]);
+	//printk(KERN_INFO "THIRD: %c\n", buff[2]);
 
 	if(buff[0] == '(')
 	{
 
 		sscanf(buff,"(%d,%d);%d", &xpos, &ypos, &rgb); 
-		printk(KERN_INFO "Prvi slucaj, bez broja pre (\n");
+		//printk(KERN_INFO "Prvi slucaj, bez broja pre (\n");
 
 	} else {
 
 		sscanf(buff, "%d(%d,%d);%d", &number, &xpos, &ypos, &rgb);
-		printk(KERN_INFO "Drugi slucaj, sa brojem pre (\n");
+		//printk(KERN_INFO "Drugi slucaj, sa brojem pre (\n");
 
 	}
+
 	switch(minor){
 
 		case 0:
@@ -317,7 +313,7 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				printk(KERN_WARNING "IFS_write: Wrong write format\n");
 				// return -EINVAL; //parsing error
 			}
-				return length;
+
 			break;
 
 		case 1:
@@ -345,15 +341,13 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				printk(KERN_WARNING "IFS_write: Wrong write format\n");
 				//return -EINVAL; //parsing error
 			}
-			return length;
-
 			break;
+
 
 		case 2:
 
 			printk(KERN_WARNING "IFS_write: cannot write in this BRAM \n");
 
-			break;
 
 		case 3:
 			if (ret != -EINVAL){
@@ -363,18 +357,13 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				iowrite32(rgb, ip->base_addr +12); //status
 
 			}
-			return length;
-
 			break;
 
 		default:
 			printk(KERN_INFO"somethnig went wrong\n");
-	break;
 	}
 
-	printk(KERN_INFO "Provera write file success \n");
-
-	return 0;
+	return length;
 }
 
 int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
