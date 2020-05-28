@@ -12,6 +12,8 @@
 #include <linux/of.h>
 
 #include <linux/mm.h> //za memorijsko mapiranje
+#include <linux/dma-mapping.h>
+#include <linux/interrupt.h>
 
 #include <linux/io.h> //iowrite ioread
 #include <linux/slab.h>//kmalloc kfree
@@ -118,7 +120,7 @@ static int IFS_probe (struct platform_device *pdev) {
 	printk(KERN_INFO "Start address:%x \t end address:%x", r_mem->start, r_mem->end);
 
 
-	if(!request_mem_region(ip->mem_start, ip->mem_end - ip-> mem_start + 1, "IFS")){
+	if(!request_mem_region(ip->mem_start, ip->mem_end - ip-> mem_start + 1, DRIVER_NAME)){
 		printk(KERN_ALERT "Could not lock memory region at %p\n",(void *)ip->mem_start);
 		rc = -EBUSY;
 		goto error1;
@@ -149,10 +151,10 @@ static int IFS_remove(struct platform_device *pdev)
 {
 	int i=0;
 	printk(KERN_WARNING "IFS platform driver removing\n");
-	for(i=0; i<2000; i++)
-	{
-		iowrite32(0, ip->base_addr + i*4);
-	}
+	//for(i=0; i<2000; i++)
+	//{
+	//	iowrite32(0, ip->base_addr + i*4);
+	//}
 	iounmap(ip->base_addr);
 	release_mem_region(ip->mem_start, ip->mem_end - ip->mem_start + 1);
 	kfree(ip);
@@ -192,8 +194,8 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 				value  = ioread32(ip->base_addr + pos);
 				printk (KERN_INFO "value is: %d\n",value);
 				printk (KERN_INFO "position is: %d\n",pos);
-				//temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
-				ret = copy_to_user(buf, value, len);
+				temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+				ret = copy_to_user(buf, buff, len);
 				if(ret){
 					return -EFAULT;
 				}
@@ -231,7 +233,7 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 			status = ioread32(ip->base_addr+12);
 			printk(KERN_INFO"Ready is: %d\n", status);
 			cmd = ioread32(ip->base_addr +8);
-			printk(KERN_INFO"Cmd is: %d\n", cmd);
+			printk(KERN_INFO"Command is: %d\n", cmd);
 			lines = ioread32(ip->base_addr+4);
 			printk(KERN_INFO"Lines is: %d\n", lines);
 			columns = ioread32(ip->base_addr);
@@ -297,9 +299,9 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				}
 				else
 				{
-					printk(KERN_INFO "number is: %d",number );
-					position = (255*ypos+xpos)*4;
-					for(i=0; i<number; i++)
+					//printk(KERN_INFO "number is: %d",number );
+					position = (ypos+xpos)*4;
+					for(i=0; i<=number; i++)
 					{
 						pos = position +i*4;
 						printk(KERN_INFO "position is: %d\n",pos);
@@ -350,13 +352,13 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 
 
 		case 3:
-			if (ret != -EINVAL){
+			/*if (ret != -EINVAL){
 				iowrite32(xpos, ip->base_addr); //columns
 				iowrite32(ypos, ip->base_addr +4); //lines
 				iowrite32(number, ip->base_addr +8); //cmd
 				iowrite32(rgb, ip->base_addr +12); //status
 
-			}
+			}*/
 			break;
 
 		default:
@@ -411,25 +413,25 @@ static int __init IFS_init(void)
 	printk(KERN_INFO "Class created\n");
 
 
-	my_device = device_create(my_class, NULL, MKDEV(MAJOR(my_dev_id),0), NULL, "BRAM_IMAGE");
+	my_device = device_create(my_class, NULL, MKDEV(MAJOR(my_dev_id),0), NULL, "bram_image");
 	if (my_device == NULL){
 		printk(KERN_ERR "failed to create device BRAM_IMAGE\n");
 		goto fail_1;
 	}
 	printk(KERN_INFO "created BRAM_IMAGE\n");
-	my_device = device_create(my_class, NULL, MKDEV(MAJOR(my_dev_id),1), NULL, "BRAM_KERNEL");
+	my_device = device_create(my_class, NULL, MKDEV(MAJOR(my_dev_id),1), NULL, "bram_kernel");
 	if (my_device == NULL){
 		printk(KERN_ERR "failed to create device BRAM_KERNEL\n");
 		goto fail_1;
 	}
 	printk(KERN_INFO "created BRAM_KERNEL\n");
-	my_device = device_create(my_class, NULL, MKDEV(MAJOR(my_dev_id),2), NULL, "BRAM_AFTER_CONV");
+	my_device = device_create(my_class, NULL, MKDEV(MAJOR(my_dev_id),2), NULL, "bram_after_conv");
 	if (my_device == NULL){
 		printk(KERN_ERR "failed to create device BRAM_AFTER_CONV\n");
 		goto fail_1;
 	}
 	printk(KERN_INFO "created BRAM_AFTER_CONV\n");
-	my_device = device_create(my_class, NULL, MKDEV(MAJOR(my_dev_id),3), NULL, "IFS");
+	my_device = device_create(my_class, NULL, MKDEV(MAJOR(my_dev_id),3), NULL, "image_conv");
 
 	if(my_device == NULL){
 		printk(KERN_ERR "Failde to create device IFS\n");
