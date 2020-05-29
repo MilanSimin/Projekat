@@ -12,9 +12,6 @@
 #include <linux/of.h>
 
 #include <linux/mm.h> //za memorijsko mapiranje
-#include <linux/dma-mapping.h>
-#include <linux/interrupt.h>
-
 #include <linux/io.h> //iowrite ioread
 #include <linux/slab.h>//kmalloc kfree
 #include <linux/platform_device.h>//platform driver
@@ -109,16 +106,14 @@ static int IFS_probe (struct platform_device *pdev)
 	struct resource *r_mem;
 	int rc = 0;
 	r_mem= platform_get_resource(pdev, IORESOURCE_MEM, 0);
+	if(!r_mem){
+		printk(KERN_ALERT "Failed to get resource\n");
+		return -ENODEV;
+	}	
+	
 	switch(counter){
 
 		case 0:
-			//struct resource *r_mem;
-			//int rc = 0;
-			//r_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-			if(!r_mem){
-				printk(KERN_ALERT "Failed to get resource\n");
-				return -ENODEV;
-			}
 
 			ip = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
 			if(!ip){
@@ -157,14 +152,7 @@ static int IFS_probe (struct platform_device *pdev)
 
 		case 1:
 
-			//struct resource *r_mem;
-			//int rc = 0;
-			//r_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-			if(!r_mem){
-				printk(KERN_ALERT "Failed to get resource\n");
-				return -ENODEV;
-			}
-
+			
 			bp1 = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
 			if(!ip){
 				printk(KERN_ALERT "Could not allocate memory\n");
@@ -200,14 +188,7 @@ static int IFS_probe (struct platform_device *pdev)
 				return rc;
 
 		case 2:
-			//struct resource *r_mem;
-			//int rc = 0;
-			//r_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-			if(!r_mem){
-				printk(KERN_ALERT "Failed to get resource\n");
-				return -ENODEV;
-			}
-
+			
 			bp2 = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
 			if(!bp2){
 				printk(KERN_ALERT "Could not allocate memory\n");
@@ -244,14 +225,7 @@ static int IFS_probe (struct platform_device *pdev)
 
 
 		case 3:
-			//struct resource *r_mem;
-			//int rc = 0;
-			//r_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-			if(!r_mem){
-				printk(KERN_ALERT "Failed to get resource\n");
-				return -ENODEV;
-			}
-
+			
 			bp3 = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
 			if(!bp3){
 				printk(KERN_ALERT "Could not allocate memory\n");
@@ -286,7 +260,7 @@ static int IFS_probe (struct platform_device *pdev)
 				return rc;
 	}
 
-	return 0;
+	//return 0;
 }
 
 static int IFS_remove(struct platform_device *pdev)
@@ -338,7 +312,7 @@ static int IFS_remove(struct platform_device *pdev)
 
 	}
 
-	return 0;
+	//return 0;
 }
 
 
@@ -398,22 +372,24 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 				if(ret){
 					return -EFAULT;
 				}
+			}
 			break;
 
 
 		case 2:
 
-			for(i=0; i<10; i++){
-				value = ioread32(bp2->base_addr + i*4);
-				printk(KERN_INFO "value is: %d\n",value);
-				printk(KERN_INFO "position is: %d\n",i*4);
+			for(i=0; i<10; i++)
+			{
+				pos = position + i*4;
+				value  = ioread32(bp1->base_addr + pos);
+				printk (KERN_INFO "value is: %d\n",value);
+				printk (KERN_INFO "position is: %d\n",pos);
 				temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
 				ret = copy_to_user(buf, buff, len);
 				if(ret){
 					return -EFAULT;
 				}
 			}
-
 			break;
 
 		case 3:
