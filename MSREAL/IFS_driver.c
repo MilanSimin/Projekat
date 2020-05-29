@@ -1,3 +1,4 @@
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -76,10 +77,10 @@ struct file_operations my_fops =
 static struct of_device_id IFS_of_match[] = {
 
 
-	{ .compatible = "image_conv", },
 	{ .compatible = "bram_image", },
 	{ .compatible = "bram_kernel", },
 	{ .compatible = "bram_after_conv" },
+	{ .compatible = "image_conv"},
 	{ /* end of list */}
 
 };
@@ -109,50 +110,12 @@ static int IFS_probe (struct platform_device *pdev)
 	if(!r_mem){
 		printk(KERN_ALERT "Failed to get resource\n");
 		return -ENODEV;
-	}	
-	
+	}
+
 	switch(counter){
 
-		case 0:
+		case  0:
 
-			ip = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
-			if(!ip){
-				printk(KERN_ALERT "Could not allocate memory\n");
-				return -ENOMEM;
-			}
-
-			ip->mem_start = r_mem->start;
-			ip->mem_end = r_mem->end;
-			printk(KERN_INFO "Start address:%x \t end address:%x", r_mem->start, r_mem->end);
-
-
-			if(!request_mem_region(ip->mem_start, ip->mem_end - ip-> mem_start + 1, DRIVER_NAME)){
-				printk(KERN_ALERT "Could not lock memory region at %p\n",(void *)ip->mem_start);
-				rc = -EBUSY;
-				goto error1;
-			}
-
-			ip->base_addr = ioremap(ip->mem_start, ip->mem_end - ip->mem_start +1);
-
-			if(!ip->base_addr){
-				printk(KERN_ALERT "Could not allocate memory\n");
-				rc = -EIO;
-				goto error2;
-			}
-
-			counter++;
-			printk(KERN_INFO "IFS driver registered\n");
-		 	return 0;//ALL OK
-
-			error2:
-				release_mem_region(ip->mem_start, ip->mem_end - ip->mem_start + 1);	
-			error1:
-				return rc;
-
-
-		case 1:
-
-			
 			bp1 = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
 			if(!ip){
 				printk(KERN_ALERT "Could not allocate memory\n");
@@ -179,7 +142,7 @@ static int IFS_probe (struct platform_device *pdev)
 			}
 
 			counter ++;
-			printk(KERN_WARNING "BRAM_image registered\n");
+			printk(KERN_WARNING "BRAM_IMAGE registered\n");
 		 	return 0;//ALL OK
 
 			error4:
@@ -187,7 +150,7 @@ static int IFS_probe (struct platform_device *pdev)
 			error3:
 				return rc;
 
-		case 2:
+		case 1:
 			
 			bp2 = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
 			if(!bp2){
@@ -215,7 +178,7 @@ static int IFS_probe (struct platform_device *pdev)
 			}
 
 			counter ++;
-			printk(KERN_WARNING "BRAM_kernel registered\n");
+			printk(KERN_WARNING "BRAM_KERNEL registered\n");
 		 	return 0;//ALL OK
 
 			error5:
@@ -224,7 +187,7 @@ static int IFS_probe (struct platform_device *pdev)
 				return rc;
 
 
-		case 3:
+		case 2:
 			
 			bp3 = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
 			if(!bp3){
@@ -250,14 +213,51 @@ static int IFS_probe (struct platform_device *pdev)
 				rc = -EIO;
 				goto error7;
 			}
-
-			printk(KERN_WARNING "BRAM_after_conv registered\n");
+			counter++;
+			printk(KERN_WARNING "BRAM_AFTER_CONV registered\n");
 		 	return 0;//ALL OK
 
 			error7:
 				release_mem_region(bp3->mem_start, bp3->mem_end - bp3->mem_start + 1);	
 			error8:
 				return rc;
+	
+		case 3:
+
+			ip = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
+			if(!ip){
+				printk(KERN_ALERT "Could not allocate memory\n");
+				return -ENOMEM;
+			}
+
+			ip->mem_start = r_mem->start;
+			ip->mem_end = r_mem->end;
+			printk(KERN_INFO "Start address:%x \t end address:%x", r_mem->start, r_mem->end);
+
+
+			if(!request_mem_region(ip->mem_start, ip->mem_end - ip-> mem_start + 1, DRIVER_NAME)){
+				printk(KERN_ALERT "Could not lock memory region at %p\n",(void *)ip->mem_start);
+				rc = -EBUSY;
+				goto error1;
+			}
+
+			ip->base_addr = ioremap(ip->mem_start, ip->mem_end - ip->mem_start +1);
+
+			if(!ip->base_addr){
+				printk(KERN_ALERT "Could not allocate memory\n");
+				rc = -EIO;
+				goto error2;
+			]
+
+			printk(KERN_INFO "IFS driver registered\n");
+		 	return 0;//ALL OK
+
+			error2:
+				release_mem_region(ip->mem_start, ip->mem_end - ip->mem_start + 1);	
+			error1:
+				return rc;
+
+
 	}
 
 	//return 0;
@@ -271,26 +271,16 @@ static int IFS_remove(struct platform_device *pdev)
 	switch(counter){
 
 		case 0:
-			printk(KERN_WARNING "IFS_remove: platform driver removing\n");
-			iowrite32(0,ip->base_addr);
-			iounmap(ip->base_addr);
-			release_mem_region(ip->mem_start, ip->mem_end - ip->mem_start + 1);
-			kfree(ip);
-			printk(KERN_INFO"IFS_remove: IFS driver removed\n");
-
-		break;
-
-		case 1:
 			printk(KERN_WARNING "BRAM_IMAGE_remove: platform driver removing\n");
 			iowrite32(0,bp1->base_addr);
 			iounmap(bp1->base_addr);
 			release_mem_region(bp1->mem_start, bp1->mem_end - bp1->mem_start + 1);
 			kfree(bp1);
 			printk(KERN_INFO"BRAM_IMAGE_remove: BRAM_IMAGE removed\n");
-			counter--;
+
 		break;
 
-		case 2:
+		case 1:
 			printk(KERN_WARNING "BRAM_KERNEL_remove: platform driver removing\n");
 			iowrite32(0,bp2->base_addr);
 			iounmap(bp2->base_addr);
@@ -300,13 +290,24 @@ static int IFS_remove(struct platform_device *pdev)
 			counter--;
 		break;
 
-		case 3:
+		case 2:
 			printk(KERN_WARNING "BRAM_AFTER_CONV_remove: platform driver removing\n");
 			iowrite32(0,bp3->base_addr);
 			iounmap(bp3->base_addr);
 			release_mem_region(bp3->mem_start, bp3->mem_end - bp3->mem_start + 1);
 			kfree(bp3);
 			printk(KERN_INFO"BRAM_AFTER_CONV_remove: BRAM_AFTER_CONV removed\n");
+			counter--;
+		break;
+		
+
+		case 3:
+			printk(KERN_WARNING "IFS_remove: platform driver removing\n");
+			iowrite32(0,ip->base_addr);
+			iounmap(ip->base_addr);
+			release_mem_region(ip->mem_start, ip->mem_end - ip->mem_start + 1);
+			kfree(ip);
+			printk(KERN_INFO"IFS_remove: IFS driver removed\n");
 			counter--;
 		break;
 
@@ -340,7 +341,56 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 	int minor = MINOR(pfile->f_inode->i_rdev);
 	switch(minor){
 
+
 		case 0:
+			for(i=0; i<10; i++)
+			{
+				pos = position + i*4;
+				value  = ioread32(bp1->base_addr + pos);
+				printk (KERN_INFO "value is: %d\n",value);
+				printk (KERN_INFO "position is: %d\n",pos);
+				temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+				ret = copy_to_user(buf, buff, len);
+				if(ret){
+					return -EFAULT;
+				}
+			}
+			break;
+
+
+		case 1:
+
+			for(i=0; i<10; i++)
+			{
+				pos = position + i*4;
+				value  = ioread32(bp2->base_addr + pos);
+				printk (KERN_INFO "value is: %d\n",value);
+				printk (KERN_INFO "position is: %d\n",pos);
+				temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+				ret = copy_to_user(buf, buff, len);
+				if(ret){
+					return -EFAULT;
+				}
+			}
+			break;
+
+		case 2:
+			for(i=0; i<10; i++){
+
+				after_conv = ioread32(bp3->base_addr+i*4);
+				printk(KERN_INFO"after_conv is: %d \n", after_conv);
+				printk(KERN_INFO "position is: %d\n",i*4);
+				temp = scnprintf(buff, BUFF_SIZE, "%d\n", after_conv);
+				ret=copy_to_user(buf,buff,len);
+				if(ret)
+				{
+					return -EFAULT;
+				}
+
+			}
+			break;
+
+		case 3:
 
 			status = ioread32(ip->base_addr+12);
 			printk(KERN_INFO"Ready is: %d\n", status);
@@ -360,53 +410,6 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 			break;
 
 
-		case 1:
-			for(i=0; i<10; i++)
-			{
-				pos = position + i*4;
-				value  = ioread32(bp1->base_addr + pos);
-				printk (KERN_INFO "value is: %d\n",value);
-				printk (KERN_INFO "position is: %d\n",pos);
-				temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
-				ret = copy_to_user(buf, buff, len);
-				if(ret){
-					return -EFAULT;
-				}
-			}
-			break;
-
-
-		case 2:
-
-			for(i=0; i<10; i++)
-			{
-				pos = position + i*4;
-				value  = ioread32(bp1->base_addr + pos);
-				printk (KERN_INFO "value is: %d\n",value);
-				printk (KERN_INFO "position is: %d\n",pos);
-				temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
-				ret = copy_to_user(buf, buff, len);
-				if(ret){
-					return -EFAULT;
-				}
-			}
-			break;
-
-		case 3:
-			for(i=0; i<10; i++){
-
-				after_conv = ioread32(bp3->base_addr+i*4);
-				printk(KERN_INFO"after_conv is: %d \n", after_conv);
-				printk(KERN_INFO "position is: %d\n",i*4);
-				temp = scnprintf(buff, BUFF_SIZE, "%d\n", after_conv);
-				ret=copy_to_user(buf,buff,len);
-				if(ret)
-				{
-					return -EFAULT;
-				}
-
-			}
-			break;
 		default:
 			printk(KERN_INFO"somethnig went wrong\n");
 	}
@@ -445,17 +448,6 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 	switch(minor){
 
 		case 0:
-			/*if (ret != -EINVAL){
-				iowrite32(xpos, ip->base_addr); //columns
-				iowrite32(ypos, ip->base_addr +4); //lines
-				iowrite32(number, ip->base_addr +8); //cmd
-				iowrite32(rgb, ip->base_addr +12); //status
-
-			}*/
-			break;
-
-
-		case 1:
 			if(ret != -EINVAL) //checking for parsing error
 				{
 				if (xpos > 255)
@@ -487,7 +479,7 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 
 			break;
 
-		case 2:
+		case 1:
 			if(ret != -EINVAL) //checking for parsing error
 			{
 				if (xpos > 3)
@@ -512,12 +504,25 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				printk(KERN_WARNING "IFS_write: Wrong write format\n");
 				//return -EINVAL; //parsing error
 			}
-			break;
+		break;
+
+
+		case 2:
+
+			printk(KERN_WARNING "IFS_write: cannot write in this BRAM \n");
+
+		break;
 
 
 		case 3:
+			/*if (ret != -EINVAL){
+				iowrite32(xpos, ip->base_addr); //columns
+				iowrite32(ypos, ip->base_addr +4); //lines
+				iowrite32(number, ip->base_addr +8); //cmd
+				iowrite32(rgb, ip->base_addr +12); //status
 
-			printk(KERN_WARNING "IFS_write: cannot write in this BRAM \n");
+			}*/
+		break;
 
 		default:
 			printk(KERN_INFO"somethnig went wrong\n");
