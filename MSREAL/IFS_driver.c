@@ -464,14 +464,19 @@ static void __exit IFS_exit(void)
 {
 	printk(KERN_ALERT "IFS_exit: rmmod called\n");
 	platform_driver_unregister(&IFS_driver);
+	printk(KERN_INFO"IFS_exit: platform_driver_unregister done\n");
 	cdev_del(my_cdev);
-	printk(KERN_ALERT "IFS_exit: check 2\n");
+	printk(KERN_ALERT "IFS_exit: cdev_del done\n");
 	device_destroy(my_class, MKDEV(MAJOR(my_dev_id),0));
+	printk(KERN_INFO"IFS_exit: device destroy 0\n");
 	device_destroy(my_class, MKDEV(MAJOR(my_dev_id),1));
+	printk(KERN_INFO"IFS_exit: device destroy 1\n");
 	device_destroy(my_class, MKDEV(MAJOR(my_dev_id),2));
+	printk(KERN_INFO"IFS_exit: device destroy 2\n");
 	device_destroy(my_class, MKDEV(MAJOR(my_dev_id),3));
+	printk(KERN_INFO"IFS_exit: device destroy 3\n");
 	class_destroy(my_class);
-	printk(KERN_ALERT "IFS_exit: check 3\n");
+	printk(KERN_INFO"IFS_exit: class destroy \n");
 	unregister_chrdev_region(my_dev_id,4);
 	printk(KERN_ALERT "Goodbye from IFS_driver\n");	
 
