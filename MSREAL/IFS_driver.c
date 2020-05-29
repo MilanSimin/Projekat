@@ -150,12 +150,15 @@ static int IFS_probe (struct platform_device *pdev) {
 static int IFS_remove(struct platform_device *pdev)
 {
 
-	printk(KERN_WARNING "IFS platform driver removing\n");
+	printk(KERN_WARNING "IFS_remove: platform driver removing\n");
 	iowrite32(0,ip->base_addr);
+	printk(KERN_INFO"IFS_remove: IFS driver removing 1\n");
 	iounmap(ip->base_addr);
+	printk(KERN_INFO"IFS_remove: IFS driver removing 2\n");
 	release_mem_region(ip->mem_start, ip->mem_end - ip->mem_start + 1);
+	printk(KERN_INFO"IFS_remove: IFS driver removing 3\n");
 	kfree(ip);
-	printk(KERN_INFO"IFS_remove: IFS driver removed\n");
+	printk(KERN_INFO"IFS_remove: IFS driver removing 4\n");
 	return 0;
 }
 
@@ -264,9 +267,6 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 		return -EFAULT;
 	}
 	buff[length] = '\0';
-	//printk(KERN_INFO "FIRST: %c\n", buff[0]);
-	//printk(KERN_INFO "SECOND: %c\n", buff[1]);
-	//printk(KERN_INFO "THIRD: %c\n", buff[2]);
 
 	if(buff[0] == '(')
 	{
@@ -297,7 +297,7 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				else
 				{
 					//printk(KERN_INFO "number is: %d",number );
-					position = (ypos+xpos)*4;
+					position = (255*ypos+xpos)*4;
 					for(i=0; i<=number; i++)
 					{
 						pos = position +i*4;
@@ -462,14 +462,16 @@ static int __init IFS_init(void)
 
 static void __exit IFS_exit(void)
 {
-
+	printk(KERN_ALERT "IFS_exit: rmmod called\n");
 	platform_driver_unregister(&IFS_driver);
 	cdev_del(my_cdev);
+	printk(KERN_ALERT "IFS_exit: check 2\n");
 	device_destroy(my_class, MKDEV(MAJOR(my_dev_id),0));
 	device_destroy(my_class, MKDEV(MAJOR(my_dev_id),1));
 	device_destroy(my_class, MKDEV(MAJOR(my_dev_id),2));
 	device_destroy(my_class, MKDEV(MAJOR(my_dev_id),3));
 	class_destroy(my_class);
+	printk(KERN_ALERT "IFS_exit: check 3\n");
 	unregister_chrdev_region(my_dev_id,4);
 	printk(KERN_ALERT "Goodbye from IFS_driver\n");	
 
