@@ -117,7 +117,7 @@ static int IFS_probe (struct platform_device *pdev)
 		case  0:
 
 			bp1 = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
-			if(!ip){
+			if(!bp1){
 				printk(KERN_ALERT "Could not allocate memory\n");
 				return -ENOMEM;
 			}
@@ -247,7 +247,7 @@ static int IFS_probe (struct platform_device *pdev)
 				printk(KERN_ALERT "Could not allocate memory\n");
 				rc = -EIO;
 				goto error2;
-			]
+			}
 
 			printk(KERN_INFO "IFS driver registered\n");
 		 	return 0;//ALL OK
@@ -260,7 +260,7 @@ static int IFS_probe (struct platform_device *pdev)
 
 	}
 
-	//return 0;
+	return 0;
 }
 
 static int IFS_remove(struct platform_device *pdev)
@@ -313,7 +313,7 @@ static int IFS_remove(struct platform_device *pdev)
 
 	}
 
-	//return 0;
+	return 0;
 }
 
 
