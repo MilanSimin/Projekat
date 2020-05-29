@@ -23,8 +23,8 @@
 
 
 #define BUFF_SIZE 30
-#define DRIVER_NAME "IFS_DRIVER"
 #define MAX_PKT_LEN 256*256*4
+#define DRIVER_NAME "IFS_DRIVER"
 #define DEVICE_NAME "IFS"
 
 MODULE_AUTHOR ("FTN");
@@ -149,12 +149,9 @@ static int IFS_probe (struct platform_device *pdev) {
 
 static int IFS_remove(struct platform_device *pdev)
 {
-	int i=0;
+
 	printk(KERN_WARNING "IFS platform driver removing\n");
-	//for(i=0; i<2000; i++)
-	//{
-	//	iowrite32(0, ip->base_addr + i*4);
-	//}
+	iowrite32(0,ip->base_addr);
 	iounmap(ip->base_addr);
 	release_mem_region(ip->mem_start, ip->mem_end - ip->mem_start + 1);
 	kfree(ip);
