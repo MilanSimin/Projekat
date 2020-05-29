@@ -45,9 +45,13 @@ static struct class *my_class;
 static struct device *my_device;
 static struct cdev *my_cdev;
 static struct IFS_info *ip = NULL;
+static struct IFS_info *bp1 = NULL;
+static struct IFS_info *bp2 = NULL;
+static struct IFS_info *bp3 = NULL;
 
 int position = 0;
 int number = 0;
+int counter = 0;
 
 //****************************** FUNCTION PROTOTYPES ****************************************//
 static int IFS_probe (struct platform_device *pdev);
@@ -98,68 +102,253 @@ static struct platform_driver IFS_driver = {
 };
 
 
-static int IFS_probe (struct platform_device *pdev) {
+static int IFS_probe (struct platform_device *pdev) 
+{
+
+	printk(KERN_INFO "Counter is: %d\n", counter);
+	
+	switch(counter){
+
+		case 0:
+			struct resource *r_mem;
+			int rc = 0;
+			r_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+			if(!r_mem){
+				printk(KERN_ALERT "Failed to get resource\n");
+				return -ENODEV;
+			}
+
+			ip = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
+			if(!ip){
+				printk(KERN_ALERT "Could not allocate memory\n");
+				return -ENOMEM;
+			}
+
+			ip->mem_start = r_mem->start;
+			ip->mem_end = r_mem->end;
+			printk(KERN_INFO "Start address:%x \t end address:%x", r_mem->start, r_mem->end);
 
 
-	struct resource *r_mem;
-	int rc = 0;
-	r_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if(!r_mem){
-		printk(KERN_ALERT "Failed to get resource\n");
-		return -ENODEV;
+			if(!request_mem_region(ip->mem_start, ip->mem_end - ip-> mem_start + 1, DRIVER_NAME)){
+				printk(KERN_ALERT "Could not lock memory region at %p\n",(void *)ip->mem_start);
+				rc = -EBUSY;
+				goto error1;
+			}
+
+			ip->base_addr = ioremap(ip->mem_start, ip->mem_end - ip->mem_start +1);
+
+			if(!ip->base_addr){
+				printk(KERN_ALERT "Could not allocate memory\n");
+				rc = -EIO;
+				goto error2;
+			}
+
+			counter++;
+			printk(KERN_INFO "IFS driver registered\n");
+		 	return 0;//ALL OK
+
+			error2:
+				release_mem_region(ip->mem_start, ip->mem_end - ip->mem_start + 1);	
+			error1:
+				return rc;
+
+		
+
+		case 1:
+
+			struct resource *r_mem;
+			int rc = 0;
+			r_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+			if(!r_mem){
+				printk(KERN_ALERT "Failed to get resource\n");
+				return -ENODEV;
+			}
+
+			bp1 = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
+			if(!ip){
+				printk(KERN_ALERT "Could not allocate memory\n");
+				return -ENOMEM;
+			}
+
+			bp1->mem_start = r_mem->start;
+			bp1->mem_end = r_mem->end;
+			printk(KERN_INFO "Start address:%x \t end address:%x", r_mem->start, r_mem->end);
+
+
+			if(!request_mem_region(bp1->mem_start, bp1->mem_end - bp1-> mem_start + 1, DRIVER_NAME)){
+				printk(KERN_ALERT "Could not lock memory region at %p\n",(void *)bp1->mem_start);
+				rc = -EBUSY;
+				goto error1;
+			}
+
+			bp1->base_addr = ioremap(bp1->mem_start, bp1->mem_end - bp1->mem_start +1);
+
+			if(!bp1->base_addr){
+				printk(KERN_ALERT "Could not allocate memory\n");
+				rc = -EIO;
+				goto error2;
+			}
+
+			counter ++;
+			printk(KERN_WARNING "BRAM_image registered\n");
+		 	return 0;//ALL OK
+
+			error2:
+				release_mem_region(bp1->mem_start, bp1->mem_end - bp1->mem_start + 1);	
+			error1:
+				return rc;
+
+		case 2:
+			struct resource *r_mem;
+			int rc = 0;
+			r_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+			if(!r_mem){
+				printk(KERN_ALERT "Failed to get resource\n");
+				return -ENODEV;
+			}
+
+			bp2 = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
+			if(!bp2){
+				printk(KERN_ALERT "Could not allocate memory\n");
+				return -ENOMEM;
+			}
+
+			bp2->mem_start = r_mem->start;
+			bp2->mem_end = r_mem->end;
+			printk(KERN_INFO "Start address:%x \t end address:%x", r_mem->start, r_mem->end);
+
+
+			if(!request_mem_region(bp2->mem_start, bp2->mem_end - bp2-> mem_start + 1, DRIVER_NAME)){
+				printk(KERN_ALERT "Could not lock memory region at %p\n",(void *)bp2->mem_start);
+				rc = -EBUSY;
+				goto error1;
+			}
+
+			bp2->base_addr = ioremap(bp2->mem_start, bp2->mem_end - bp2->mem_start +1);
+
+			if(!bp2->base_addr){
+				printk(KERN_ALERT "Could not allocate memory\n");
+				rc = -EIO;
+				goto error2;
+			}
+
+			counter ++;
+			printk(KERN_WARNING "BRAM_kernel registered\n");
+		 	return 0;//ALL OK
+
+			error2:
+				release_mem_region(bp2->mem_start, bp2->mem_end - bp2->mem_start + 1);	
+			error1:
+				return rc;
+
+
+		case 3:
+			struct resource *r_mem;
+			int rc = 0;
+			r_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+			if(!r_mem){
+				printk(KERN_ALERT "Failed to get resource\n");
+				return -ENODEV;
+			}
+
+			bp3 = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
+			if(!bp3){
+				printk(KERN_ALERT "Could not allocate memory\n");
+				return -ENOMEM;
+			}
+
+			bp3->mem_start = r_mem->start;
+			bp3->mem_end = r_mem->end;
+			printk(KERN_INFO "Start address:%x \t end address:%x", r_mem->start, r_mem->end);
+
+
+			if(!request_mem_region(bp3->mem_start, bp3->mem_end - bp3-> mem_start + 1, DRIVER_NAME)){
+				printk(KERN_ALERT "Could not lock memory region at %p\n",(void *)bp3->mem_start);
+				rc = -EBUSY;
+				goto error1;
+			}
+
+			bp3->base_addr = ioremap(bp3->mem_start, bp3->mem_end - bp3->mem_start +1);
+
+			if(!bp3->base_addr){
+				printk(KERN_ALERT "Could not allocate memory\n");
+				rc = -EIO;
+				goto error2;
+			}
+
+			printk(KERN_WARNING "BRAM_after_conv registered\n");
+		 	return 0;//ALL OK
+
+			error2:
+				release_mem_region(bp3->mem_start, bp3->mem_end - bp3->mem_start + 1);	
+			error1:
+				return rc;
 	}
 
-	ip = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
-	if(!ip){
-		printk(KERN_ALERT "Could not allocate memory\n");
-		return -ENOMEM;
-	}
-
-	ip->mem_start = r_mem->start;
-	ip->mem_end = r_mem->end;
-	printk(KERN_INFO "Start address:%x \t end address:%x", r_mem->start, r_mem->end);
-
-
-	if(!request_mem_region(ip->mem_start, ip->mem_end - ip-> mem_start + 1, DRIVER_NAME)){
-		printk(KERN_ALERT "Could not lock memory region at %p\n",(void *)ip->mem_start);
-		rc = -EBUSY;
-		goto error1;
-
-	}
-
-	ip->base_addr = ioremap(ip->mem_start, ip->mem_end - ip->mem_start +1);
-	//printk(KERN_INFO "Start address:%x \t end address:%x\n", ip->mem_start, ip->mem_end);
-
-	if(!ip->base_addr){
-		printk(KERN_ALERT "Could not allocate memory\n");
-		rc = -EIO;
-		goto error2;
-	}
-
-
-	printk(KERN_WARNING "IFS driver registered\n");
- 	return 0;//ALL OK
-
-	error2:
-		release_mem_region(ip->mem_start, ip->mem_end - ip->mem_start + 1);	
-	error1:
-		return rc;
 
 }
 
 static int IFS_remove(struct platform_device *pdev)
 {
 
-	printk(KERN_WARNING "IFS_remove: platform driver removing\n");
-	iowrite32(0,ip->base_addr);
-	printk(KERN_INFO"IFS_remove: IFS driver removing 1\n");
-	iounmap(ip->base_addr);
-	printk(KERN_INFO"IFS_remove: IFS driver removing 2\n");
-	release_mem_region(ip->mem_start, ip->mem_end - ip->mem_start + 1);
-	printk(KERN_INFO"IFS_remove: IFS driver removing 3\n");
-	kfree(ip);
-	printk(KERN_INFO"IFS_remove: IFS driver removing 4\n");
-	return 0;
+	printk(KERN_INFO "Counter is: %d\n", counter);
+
+	switch(counter){
+	
+		case 0:
+			printk(KERN_WARNING "IFS_remove: platform driver removing\n");
+			iowrite32(0,ip->base_addr);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 1\n");
+			iounmap(ip->base_addr);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 2\n");
+			release_mem_region(ip->mem_start, ip->mem_end - ip->mem_start + 1);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 3\n");
+			kfree(ip);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 4\n");
+			
+		break;			
+
+		case 1:
+			printk(KERN_WARNING "IFS_remove: platform driver removing\n");
+			iowrite32(0,bp1->base_addr);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 1\n");
+			iounmap(bp1->base_addr);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 2\n");
+			release_mem_region(bp1->mem_start, bp1->mem_end - bp1->mem_start + 1);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 3\n");
+			kfree(bp1);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 4\n");
+			counter--;
+		break;
+
+		case 2:
+			printk(KERN_WARNING "IFS_remove: platform driver removing\n");
+			iowrite32(0,bp2->base_addr);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 1\n");
+			iounmap(bp2->base_addr);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 2\n");
+			release_mem_region(bp2->mem_start, bp2->mem_end - bp2->mem_start + 1);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 3\n");
+			kfree(bp2);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 4\n");
+			counter--;
+		break;
+
+		case 3:
+			printk(KERN_WARNING "IFS_remove: platform driver removing\n");
+			iowrite32(0,bp3->base_addr);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 1\n");
+			iounmap(bp3->base_addr);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 2\n");
+			release_mem_region(bp3->mem_start, bp3->mem_end - bp3->mem_start + 1);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 3\n");
+			kfree(bp3);
+			printk(KERN_INFO"IFS_remove: IFS driver removing 4\n");
+			counter--;
+		break;
+		
+	}
+
 }
 
 
