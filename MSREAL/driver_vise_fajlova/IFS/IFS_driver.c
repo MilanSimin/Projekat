@@ -138,7 +138,7 @@ static int IFS_probe (struct platform_device *pdev)
 		return rc;
 
 
-	}
+	
 
 	return 0;
 }
@@ -206,7 +206,7 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 
 	char buff[BUFF_SIZE];
 	//int minor = MINOR(pfile->f_inode->i_rdev);
-	int ret = 0, i = 0, pos=0;
+	int ret = 0;
 	unsigned int lines=0, columns=0;
 	unsigned int start=0;
 	ret = copy_from_user(buff, buf, length);

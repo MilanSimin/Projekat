@@ -268,7 +268,7 @@ static int __init BRAM_init(void)
 	printk(KERN_INFO "cdev_added\n");
 	printk(KERN_INFO "Hello from BRAM_after_conv\n");
 
-	return platform_driver_register(&BRAM_AFTER_CONV_DRIVER);
+	return platform_driver_register(&BRAM_AFTER_CONV_driver);
 
 	fail_2:
 		device_destroy(my_class, my_dev_id);
@@ -283,7 +283,7 @@ static int __init BRAM_init(void)
 static void __exit BRAM_exit(void)
 {
 	printk(KERN_ALERT "IFS_exit: rmmod called\n");
-	platform_driver_unregister(&BRAM_AFTER_CONV_DRIVER);
+	platform_driver_unregister(&BRAM_AFTER_CONV_driver);
 	//printk(KERN_INFO"IFS_exit: platform_driver_unregister done\n");
 	cdev_del(my_cdev);
 	//printk(KERN_ALERT "IFS_exit: cdev_del done\n");
