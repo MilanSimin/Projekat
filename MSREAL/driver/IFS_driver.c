@@ -534,24 +534,107 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
 
 	int ret = 0;
-	unsigned long vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
-	unsigned long psize = ip->mem_end - ip->mem_start; // velicina addr prostora koji zauzima jezgro
-	vma_s->vm_page_prot = pgprot_noncached(vma_s-> vm_page_prot);
-	printk(KERN_INFO "Buffer is being memory mapped\n");
+	int minor = MINOR(pfile->f_inode->i_rdev);
 
-	if (vsize > psize)
-	{
-		printk(KERN_ERR "Trying to mmap more space than it's allocated, mmap failed\n");
-		return -EIO;
-	}
-	ret = vm_iomap_memory(vma_s, ip->mem_start, vsize);
-	if(ret)
-	{
-		printk(KERN_ERR "memory maped failed\n");
-		return ret;
+	switch(minor){
+
+		case 0:
+
+			unsigned long vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
+			unsigned long psize = bp1->mem_end - bp1->mem_start; // velicina addr prostora koji zauzima jezgro
+			vma_s->vm_page_prot = pgprot_noncached(vma_s-> vm_page_prot);
+			printk(KERN_INFO "BRAM_IMAGE: Buffer is being memory mapped\n");
+
+			if (vsize > psize)
+			{
+				printk(KERN_ERR "BRAM_IMAGE: Trying to mmap more space than it's allocated, mmap failed\n");
+				return -EIO;
+			}
+			ret = vm_iomap_memory(vma_s, bp1->mem_start, vsize);
+			if(ret)
+			{
+				printk(KERN_ERR "BRAM_IMAGE: memory maped failed\n");
+				return ret;
+
+			}
+			printk(KERN_INFO "MMAP is a success for BRAM_IMAGE\n");
+			
+		break;
+
+		case 1:	
+
+			unsigned long vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
+			unsigned long psize = bp2->mem_end - bp2->mem_start; // velicina addr prostora koji zauzima jezgro
+			vma_s->vm_page_prot = pgprot_noncached(vma_s-> vm_page_prot);
+			printk(KERN_INFO "BRAM_KERNEL: Buffer is being memory mapped\n");
+
+			if (vsize > psize)
+			{
+				printk(KERN_ERR "BRAM_KERNEL: Trying to mmap more space than it's allocated, mmap failed\n");
+				return -EIO;
+			}
+			ret = vm_iomap_memory(vma_s, bp2->mem_start, vsize);
+			if(ret)
+			{
+				printk(KERN_ERR "BRAM_KERNEL: memory maped failed\n");
+				return ret;
+
+			}
+			printk(KERN_INFO "MMAP is a success for BRAM_IMAGE\n");
+
+		break;
+
+		case 2:
+
+			unsigned long vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
+			unsigned long psize = bp3->mem_end - bp3->mem_start; // velicina addr prostora koji zauzima jezgro
+			vma_s->vm_page_prot = pgprot_noncached(vma_s-> vm_page_prot);
+			printk(KERN_INFO "BRAM_AFTER_CONV: Buffer is being memory mapped\n");
+
+			if (vsize > psize)
+			{
+				printk(KERN_ERR "BRAM_AFTER_CONV: Trying to mmap more space than it's allocated, mmap failed\n");
+				return -EIO;
+			}
+			ret = vm_iomap_memory(vma_s, bp2->mem_start, vsize);
+			if(ret)
+			{
+				printk(KERN_ERR "BRAM_AFTER_CONV: memory maped failed\n");
+				return ret;
+
+			}
+			printk(KERN_INFO "MMAP is a success for BRAM_AFTER_CONV\n");
+
+		break;
+
+		case 3: 
+
+			unsigned long vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
+			unsigned long psize = ip->mem_end - ip->mem_start; // velicina addr prostora koji zauzima jezgro
+			vma_s->vm_page_prot = pgprot_noncached(vma_s-> vm_page_prot);
+			printk(KERN_INFO "IFS: Buffer is being memory mapped\n");
+
+			if (vsize > psize)
+			{
+				printk(KERN_ERR "IFS: Trying to mmap more space than it's allocated, mmap failed\n");
+				return -EIO;
+			}
+			ret = vm_iomap_memory(vma_s, ip->mem_start, vsize);
+			if(ret)
+			{
+				printk(KERN_ERR "IFS: memory maped failed\n");
+				return ret;
+
+			}
+			printk(KERN_INFO "MMAP is a success for IFS\n");
+
+		break;
+
+		default:		
+			printk(KERN_INFO"somethnig went wrong\n");
 
 	}
-	printk(KERN_INFO "MMAP is a success\n");
+
 	return 0;
 }
 
