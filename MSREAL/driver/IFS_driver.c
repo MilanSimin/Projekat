@@ -22,7 +22,7 @@
 
 #define BUFF_SIZE 30
 #define MAX_PKT_LEN 256*256*4
-#define DRIVER_NAME "IFS_DRIVER"
+#define DRIVER_NAME "IFS_driver"
 #define DEVICE_NAME "IFS"
 
 MODULE_AUTHOR ("FTN");
@@ -535,13 +535,13 @@ int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
 
 	int ret = 0;
 	int minor = MINOR(f->f_inode->i_rdev);
-	unsigned long vsize = vma_s->vm_end - vma_s->vm_start;
+	unsigned long vsize;
 	unsigned long psize;
 	switch(minor){
 
 		case 0:
 
-			//unsigned long vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
+			vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
 			psize = bp1->mem_end - bp1->mem_start; // velicina addr prostora koji zauzima jezgro
 			vma_s->vm_page_prot = pgprot_noncached(vma_s-> vm_page_prot);
 			printk(KERN_INFO "BRAM_IMAGE: Buffer is being memory mapped\n");
@@ -564,7 +564,7 @@ int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
 
 		case 1:	
 
-			//unsigned long vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
+			vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
 			psize = bp2->mem_end - bp2->mem_start; // velicina addr prostora koji zauzima jezgro
 			vma_s->vm_page_prot = pgprot_noncached(vma_s-> vm_page_prot);
 			printk(KERN_INFO "BRAM_KERNEL: Buffer is being memory mapped\n");
@@ -587,7 +587,7 @@ int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
 
 		case 2:
 
-			//unsigned long vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
+			vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
 			psize = bp3->mem_end - bp3->mem_start; // velicina addr prostora koji zauzima jezgro
 			vma_s->vm_page_prot = pgprot_noncached(vma_s-> vm_page_prot);
 			printk(KERN_INFO "BRAM_AFTER_CONV: Buffer is being memory mapped\n");
@@ -610,7 +610,7 @@ int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
 
 		case 3: 
 
-			//unsigned long vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
+			vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
 			psize = ip->mem_end - ip->mem_start; // velicina addr prostora koji zauzima jezgro
 			vma_s->vm_page_prot = pgprot_noncached(vma_s-> vm_page_prot);
 			printk(KERN_INFO "IFS: Buffer is being memory mapped\n");
