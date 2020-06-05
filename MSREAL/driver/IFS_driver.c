@@ -515,13 +515,13 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 
 
 		case 3:
-			/*if (ret != -EINVAL){
+			if (ret != -EINVAL){
 				iowrite32(xpos, ip->base_addr); //columns
 				iowrite32(ypos, ip->base_addr +4); //lines
 				iowrite32(number, ip->base_addr +8); //cmd
 				iowrite32(rgb, ip->base_addr +12); //status
 
-			}*/
+			}
 		break;
 
 		default:
