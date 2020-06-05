@@ -421,7 +421,7 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 
 	char buff[BUFF_SIZE];
 	int minor = MINOR(pfile->f_inode->i_rdev);
-	int ret = 0, i = 0, pos=0;
+	int ret = 0, i = 0, pos = 0;
 	unsigned int xpos=0, ypos=0;
 	unsigned int rgb=0;
 	ret = copy_from_user(buff, buf, length);
@@ -542,7 +542,7 @@ int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
 		case 0:
 
 			vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
-			psize = bp1->mem_end - bp1->mem_start; // velicina addr prostora koji zauzima jezgro
+			psize = bp1->mem_end - bp1->mem_start+1; // velicina addr prostora koji zauzima jezgro
 			vma_s->vm_page_prot = pgprot_noncached(vma_s-> vm_page_prot);
 			printk(KERN_INFO "BRAM_IMAGE: Buffer is being memory mapped\n");
 
@@ -551,6 +551,7 @@ int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
 				printk(KERN_ERR "BRAM_IMAGE: Trying to mmap more space than it's allocated, mmap failed\n");
 				return -EIO;
 			}
+			printk(KERN_INFO "psize is %lu\n", psize);
 			ret = vm_iomap_memory(vma_s, bp1->mem_start, vsize);
 			if(ret)
 			{
@@ -565,7 +566,7 @@ int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
 		case 1:	
 
 			vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
-			psize = bp2->mem_end - bp2->mem_start; // velicina addr prostora koji zauzima jezgro
+			psize = bp2->mem_end - bp2->mem_start+1; // velicina addr prostora koji zauzima jezgro
 			vma_s->vm_page_prot = pgprot_noncached(vma_s-> vm_page_prot);
 			printk(KERN_INFO "BRAM_KERNEL: Buffer is being memory mapped\n");
 
@@ -588,7 +589,7 @@ int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
 		case 2:
 
 			vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
-			psize = bp3->mem_end - bp3->mem_start; // velicina addr prostora koji zauzima jezgro
+			psize = bp3->mem_end - bp3->mem_start+1; // velicina addr prostora koji zauzima jezgro
 			vma_s->vm_page_prot = pgprot_noncached(vma_s-> vm_page_prot);
 			printk(KERN_INFO "BRAM_AFTER_CONV: Buffer is being memory mapped\n");
 
@@ -611,7 +612,7 @@ int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
 		case 3: 
 
 			vsize = vma_s->vm_end - vma_s->vm_start; // velicina addr prostora koji zahteva aplikacija
-			psize = ip->mem_end - ip->mem_start; // velicina addr prostora koji zauzima jezgro
+			psize = ip->mem_end - ip->mem_start+1; // velicina addr prostora koji zauzima jezgro
 			vma_s->vm_page_prot = pgprot_noncached(vma_s-> vm_page_prot);
 			printk(KERN_INFO "IFS: Buffer is being memory mapped\n");
 
