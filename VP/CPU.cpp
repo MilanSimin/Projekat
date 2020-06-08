@@ -5,7 +5,7 @@
 #include <tlm_utils/tlm_quantumkeeper.h>
 #include <vector>
 
-#define SIZE 512
+#define SIZE 256
 using namespace sc_core;
 using namespace sc_dt;
 using namespace std;
@@ -24,8 +24,8 @@ cpu::cpu(sc_module_name name):
 //***************************************************************************
 
 
-int image[SIZE][SIZE][3];
-int final_image[SIZE][SIZE][3]={{{0}}};
+int image[SIZE][SIZE];
+int final_image[SIZE][SIZE]={{0}};
 int image_new[SIZE + 2][SIZE + 2];
 int image_BlackAndWhite[SIZE][SIZE];
 
@@ -51,7 +51,7 @@ void cpu::scan_infile(int* lines, int* columns)
             ++(*columns);
         }
     }
-    *columns=*columns/3;
+    //*columns=*columns/3;
     while((i=fgetc(fp))!=EOF)
     {
         if (i == '\n')
@@ -67,11 +67,9 @@ void cpu::scan_infile(int* lines, int* columns)
         while(!infile.eof())
         {
             for(int i = 0; i < *lines; i++)
-                for(int j = 0; j < *columns; j++)
-                    for(int z = 0; z < 3; z++)
-                    {
-                        infile >> image[i][j][z];
-                       
+                for(int j = 0; j < *columns; j++){
+                    
+                        infile >> image[i][j];
                     }
         }
 	cout<<"scan_infile end"<<endl;
@@ -85,7 +83,7 @@ void cpu::scan_infile(int* lines, int* columns)
 void cpu::BlackAndWhite( ){
 		
 		
-		for(int i = 0; i < lines; i++)
+		/*for(int i = 0; i < lines; i++)
 		{
 			for(int j = 0; j < columns; j++)
 			{
@@ -94,7 +92,7 @@ void cpu::BlackAndWhite( ){
 				
 				image_BlackAndWhite[i][j] = temp;
 			}
-		}
+		}*/
 		
 
 }
@@ -110,7 +108,7 @@ void cpu::addingZerosForEdges()
 		{
 			for(int j = 0; j < columns; j++)
 			{
-				image_new[i+1][j+1] = image_BlackAndWhite[i][j];
+				image_new[i+1][j+1] = image[i][j];
 				
 			}
 		}
@@ -130,16 +128,13 @@ void cpu::writeInFile(){
 	    {
 		for(int j=0; j < columns; j++)
 		{
-		    for(int k=0; k < 3; k++)
-		    {
-			
-		        checkfile << final_image[i][j][k];
+		    
+		        checkfile << final_image[i][j];
 		        //dont add space at end of line
-		        if((j != columns-1) || (k != 2))
+		        if(j != columns-1)
 		        {
 		            checkfile << " ";
-		        }
-		    }
+		     	}
 		}
 		//write to next line after end of line
 		checkfile << "\n";
@@ -159,7 +154,7 @@ void cpu::proces()
 	qk.reset();
 
 	scan_infile(&lines, &columns);//function for reading image into project
-	BlackAndWhite();//converting the image into black and white 
+	//BlackAndWhite();//converting the image into black and white 
 	addingZerosForEdges();//adding zeros on edges beacuse of border cases
 
 	//*****************************************************************************************
@@ -197,11 +192,11 @@ void cpu::proces()
 	vector<double> array1 = {0,0,0,0,1,0,0,0,0};
     	vector<double> array2 = {-1,-1,-1,-1,8,-1,-1,-1,-1};
     	vector<double> array3 = {0, -1, 0,-1, 5, -1, 0, -1, 0};
-    	vector<double> array4 = {0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111};
-    	vector<double> array5 = {0.0625, 0.125, 0.0625, 0.125, 0.25, 0.125, 0.0625, 0.125, 0.0625};
+    	//vector<double> array4 = {0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111};
+    	//vector<double> array5 = {0.0625, 0.125, 0.0625, 0.125, 0.25, 0.125, 0.0625, 0.125, 0.0625};
 	int selection;
 
-	cout<<"Select the type of kernel:\n" << "1. Identity Operator \n2. Edge detection \n3. Sharpening \n4. Box blur\n5. Gaussian blur -> "<<endl;
+	cout<<"Select the type of kernel:\n" << "1. Identity Operator \n2. Edge detection \n3. Sharpening \n -> "<<endl;
 	cin >> selection;
 
 	switch (selection){
@@ -248,7 +243,7 @@ void cpu::proces()
 			qk.set_and_sync(loct);
 			loct += sc_time(5, SC_NS);
 		break;
-	case 4:
+	/*case 4:
 
 			pl.set_address(VP_ADDR_MEMORY_B);
 			pl.set_command(TLM_WRITE_COMMAND);	
@@ -273,7 +268,7 @@ void cpu::proces()
 			mem_isoc->b_transport(pl, loct);
 			qk.set_and_sync(loct);
 			loct += sc_time(5, SC_NS);
-		break;
+		break;*/
 	default:
 		cerr << "Invalid selection";
 	break;
@@ -403,13 +398,11 @@ void cpu::proces()
 	//forming a matrix image from an array recieved from memory after the convolution has finished
 	int m=0;
 	
-	for(int i = 0; i < lines+2; i++){
-    		for(int j = 0; j < columns+2; j++){
+	for(int i = 0; i < columns+2; i++){
+    		for(int j = 0; j < lines+2; j++){
 
-			for(int k=0; k <3; k++){
-				final_image[i][j][k]=picture[m];
-			}
-			m++;
+				final_image[i][j]=picture[m];
+				m++;
 		}
 	}
 	
