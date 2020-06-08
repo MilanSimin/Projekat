@@ -4,7 +4,7 @@
 #include <tlm>
 #include <tlm_utils/simple_target_socket.h>
 #include <tlm_utils/simple_initiator_socket.h>
-#define SIZE 256
+#define SIZE 257
 
 const sc_dt::uint64 CONV_KERNEL = 1;
 const sc_dt::uint64 CONV_LINES = 2;

@@ -122,8 +122,8 @@ void conv::b_transport(pl_t& pl, sc_time& offset)
 					cout<<"CONVOLUTION: image received from MEMORY "<<endl;
 
 					m=0;
-					for(int i = 0; i < lines+2; i++){
-				    		for(int j = 0; j < columns+2; j++){
+					for(int i = 0; i < columns+2; i++){
+				    		for(int j = 0; j < lines+2; j++){
 							matrix[i][j]=image[m++];
 						}
 					}
@@ -144,9 +144,9 @@ void conv::convolution(){
 	//the convolution of matrix and kernel
 	cout<<"CONVOLUTION: Starting the convolution "<<endl;
 
-	for (int x = 1; x < lines+3; x++)
+	for (int x = 1; x < columns+3; x++)
 	{
-		for (int y = 1; y < columns+3 ; y++)
+		for (int y = 1; y < lines+3 ; y++)
 		{
 			int value=0;
 			for (int u =- 1; u <= 1; u++)

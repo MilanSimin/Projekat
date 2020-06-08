@@ -5,7 +5,7 @@
 #include <tlm_utils/tlm_quantumkeeper.h>
 #include <vector>
 
-#define SIZE 256
+#define SIZE 257
 using namespace sc_core;
 using namespace sc_dt;
 using namespace std;
@@ -66,8 +66,8 @@ void cpu::scan_infile(int* lines, int* columns)
         //load image into 3D array
         while(!infile.eof())
         {
-            for(int i = 0; i < *lines; i++)
-                for(int j = 0; j < *columns; j++){
+            for(int i = 0; i < *columns; i++)
+                for(int j = 0; j < *lines; j++){
                     
                         infile >> image[i][j];
                     }
@@ -104,9 +104,9 @@ void cpu::BlackAndWhite( ){
 void cpu::addingZerosForEdges()
 {		
 		
-		for(int i = 0; i < lines; i++)
+		for(int i = 0; i < columns; i++)
 		{
-			for(int j = 0; j < columns; j++)
+			for(int j = 0; j < lines; j++)
 			{
 				image_new[i+1][j+1] = image[i][j];
 				
@@ -124,9 +124,9 @@ void cpu::writeInFile(){
 
 	if(checkfile.is_open())
     	cout<<"Starting to add image into final_image.txt "<<endl;
-	    for(int i=0; i < lines; i++)
+	    for(int i=0; i < columns; i++)
 	    {
-		for(int j=0; j < columns; j++)
+		for(int j=0; j < lines; j++)
 		{
 		    
 		        checkfile << final_image[i][j];
@@ -291,11 +291,11 @@ void cpu::proces()
 	
 	cout<<"CPU: Sending image to MEMORY "<<endl;
 	vector<int> image_array;	
-	for (int i=0; i < lines+2; i++){
+	for (int i=0; i < columns+2; i++){
 
 		for(int n=0;n<=p;n++){
 		
-			if((columns+2)%8==0){
+			if((lines+2)%8==0){
 				
 				for(int m=0; m < 8; m++){
 				
@@ -317,7 +317,7 @@ void cpu::proces()
 
 
 			}else{
-			int remainder=(columns+2)%8; 
+			int remainder=(lines+2)%8; 
 			if(n<=p-1){
 				for(int m=0; m < 8; m++){
 				
@@ -409,7 +409,5 @@ void cpu::proces()
 	//*******************************************************************
 
 	writeInFile();//scaning the image into final_image.txt after the matrix has been formed
-
-
 }
 
