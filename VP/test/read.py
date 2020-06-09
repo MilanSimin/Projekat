@@ -8,14 +8,14 @@ from PIL import Image
 with open("image.h", "r") as text_file:
 
 	iksevi = text_file.readlines() #iksevi = redovi
-	kolone = iksevi[1].split(' ')
+	kolone = iksevi[1].split(',')
 	print('iksevi : ',len(iksevi))
 	print('kolone : ',len(kolone))
 	imgArray = numpy.empty([len(iksevi),len(kolone)], dtype=numpy.int8)
 	xerino = 0
 
 	for x in iksevi:
-		brojevi = x.split(" ")
+		brojevi = x.split(",")
 		#counter = 0
 		y = 0
 		for broj in brojevi:
