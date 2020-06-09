@@ -582,7 +582,7 @@ int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
 				return ret;
 
 			}
-			printk(KERN_INFO "MMAP is a success for BRAM_IMAGE\n");
+			printk(KERN_INFO "MMAP is a success for BRAM_KERNEL\n");
 
 		break;
 
@@ -598,7 +598,7 @@ int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
 				printk(KERN_ERR "BRAM_AFTER_CONV: Trying to mmap more space than it's allocated, mmap failed\n");
 				return -EIO;
 			}
-			ret = vm_iomap_memory(vma_s, bp2->mem_start, vsize);
+			ret = vm_iomap_memory(vma_s, bp3->mem_start, vsize);
 			if(ret)
 			{
 				printk(KERN_ERR "BRAM_AFTER_CONV: memory maped failed\n");

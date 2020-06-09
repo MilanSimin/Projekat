@@ -14,15 +14,13 @@
 
 int kernel[9]={0,0,0,0,1,0,0,0,0};
 int ifs[4]={11,11,1,0};
-int final_image[]={};
-
+int *final_image;
+int num_of_bytes = 500;
 
 int main(void)
 {
 	int fp,fr,fk,fn;
 	int *p,*r,*k,*n;
-	//unsigned char  kernel[9]={0,0,0,0,1,0,0,0,0};
-	//unsigned char  ifs[4]={11,11,1,0};
 
 	fp = open("/dev/image_conv", O_RDWR|O_NDELAY);
 	if (fp < 0)
@@ -97,12 +95,13 @@ int main(void)
 		printf("Cannot open /dev/bram_after_conv for write\n");
 		return -1;
 	}
+	final_image = (int *) malloc(num_of_bytes+1);
 	n=(int*)mmap(0,MAX_PKT_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fn, 0);
 	if (n == NULL ) {
 		printf ("\ncouldn't mmap\n");
 		return 0;
 	}
-
+	
 	memcpy(final_image, n, 500);
 	munmap(n, 500);
 	printf("bram_after_conv done\n");
@@ -114,7 +113,13 @@ int main(void)
 	}
 
 	printf("final_image[0]: %d\n",final_image[0]);
+	printf("final_image[1]: %d\n",final_image[1]);
+	printf("final_image[2]: %d\n",final_image[2]);
+	printf("final_image[3]: %d\n",final_image[3]);
+	printf("final_image[4]: %d\n",final_image[4]);
 	printf("final_image[5]: %d\n",final_image[5]);
+	printf("final_image[6]: %d\n",final_image[6]);
+	printf("final_image[7]: %d\n",final_image[7]);
 
 	return 0;
 
