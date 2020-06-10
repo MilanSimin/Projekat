@@ -12,9 +12,9 @@ resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
 im = cv2.cvtColor(resized,cv2.COLOR_BGR2GRAY)
 
 with open("image.h", "w") as text_file:
-	print('int image []= {',file=text_file)
-	cut_size_x = 10
-	cut_size_y = 10
+	print('const unsigned char image []= {',file=text_file)
+	cut_size_x = 130
+	cut_size_y = 110
 	x_size = 0
 	for x in im:
 		y_size = 0
