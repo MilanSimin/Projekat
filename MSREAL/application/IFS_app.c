@@ -6,7 +6,6 @@
 #include <fcntl.h>
 
 #include "image.h"
-//#include "final_image.h"
 
 #define MAX_PKT_SIZE 65536
 #define MAX_IFS_SIZE 16384
@@ -19,8 +18,10 @@ int num_of_bytes = 500;
 
 int main(void)
 {
+	FILE *fm;
 	int fp,fr,fk,fn;
 	int *p,*r,*k,*n;
+	int i=0,j=0;
 
 	fp = open("/dev/image_conv", O_RDWR|O_NDELAY);
 	if (fp < 0)
@@ -112,7 +113,7 @@ int main(void)
 		return -1;
 	}
 
-	printf("final_image[0]: %d\n",final_image[0]);
+	/*printf("final_image[0]: %d\n",final_image[0]);
 	printf("final_image[1]: %d\n",final_image[1]);
 	printf("final_image[2]: %d\n",final_image[2]);
 	printf("final_image[3]: %d\n",final_image[3]);
@@ -120,7 +121,55 @@ int main(void)
 	printf("final_image[5]: %d\n",final_image[5]);
 	printf("final_image[6]: %d\n",final_image[6]);
 	printf("final_image[7]: %d\n",final_image[7]);
+	printf("final_image[8]: %d\n",final_image[8]);
+	printf("final_image[9]: %d\n",final_image[9]);
+	printf("final_image[10]: %d\n",final_image[10]);
+	printf("final_image[11]: %d\n",final_image[11]);
+	printf("final_image[12]: %d\n",final_image[12]);
+	printf("final_image[13]: %d\n",final_image[13]);
+	printf("final_image[14]: %d\n",final_image[14]);
+	printf("final_image[15]: %d\n",final_image[15]);
 
+
+	printf("final_image[57]: %d\n",final_image[57]);
+	printf("final_image[58]: %d\n",final_image[58]);
+	printf("final_image[59]: %d\n",final_image[59]);
+	printf("final_image[60]: %d\n",final_image[60]);
+	printf("final_image[61]: %d\n",final_image[61]);
+	printf("final_image[62]: %d\n",final_image[62]);
+	printf("final_image[63]: %d\n",final_image[63]);
+	printf("final_image[64]: %d\n",final_image[64]);
+	printf("final_image[65]: %d\n",final_image[65]);
+	printf("final_image[66]: %d\n",final_image[66]);
+	printf("final_image[67]: %d\n",final_image[67]);
+	printf("final_image[68]: %d\n",final_image[68]);
+	printf("final_image[69]: %d\n",final_image[69]);
+	printf("final_image[70]: %d\n",final_image[70]);
+	printf("final_image[71]: %d\n",final_image[71]);
+	printf("final_image[72]: %d\n",final_image[72]);*/
+
+	fm =fopen("final_image.txt","w");
+	if (fm==NULL)
+	{
+		printf("cannot open final_image.txt\n");
+		return -1;
+	}
+	printf("final_image opened\n");
+	//for(i = 0; i<9; i++)
+	//{
+	//	fprintf(fm,"\n");
+		for(j=0; i<10; j++)
+		{
+			fprintf(fm,"%d",final_image[j]);
+		}
+	//}
+	printf("final_image written\n");
+
+	if(fclose(fm) == EOF)
+	{
+		printf("cannot close final_image.txt\n");
+		return -1;
+	}
 	return 0;
 
 
