@@ -103,7 +103,7 @@ static struct platform_driver IFS_driver = {
 static int IFS_probe (struct platform_device *pdev) 
 {
 
-	printk(KERN_INFO "Counter is: %d\n", counter);
+	//printk(KERN_INFO "Counter is: %d\n", counter);
 	struct resource *r_mem;
 	int rc = 0;
 	r_mem= platform_get_resource(pdev, IORESOURCE_MEM, 0);
@@ -249,7 +249,7 @@ static int IFS_probe (struct platform_device *pdev)
 				goto error2;
 			}
 
-			printk(KERN_INFO "IFS driver registered\n");
+			printk(KERN_INFO "IFS_driver registered\n");
 		 	return 0;//ALL OK
 
 			error2:
