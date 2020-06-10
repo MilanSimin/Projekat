@@ -12,7 +12,7 @@
 #define MMAP
 
 int kernel[9]={0,0,0,0,1,0,0,0,0};
-int ifs[4]={130,112,1,0};
+int ifs[4]={120,120,1,0};
 int *final_image;
 
 
@@ -126,12 +126,12 @@ int main(void)
 		return -1;
 	}
 	printf("final_image opened\n");
-	for(i = 0; i<110; i++)
+	for(i = 0; i<120; i++)
 	{
 		fprintf(fm,"\n");
-		for(j=0; j<128; j++)
+		for(j=0; j<120; j++)
 		{
-			fprintf(fm,"%d,",final_image[j+i*110]);
+			fprintf(fm,"%d,",final_image[j+i*120]);
 			fflush(fm);
 		}
 	}
