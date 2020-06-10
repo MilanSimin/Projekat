@@ -450,18 +450,18 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 		case 0:
 			if(ret != -EINVAL) //checking for parsing error
 				{
-				if (xpos > 255)
+				if (xpos > 120)
 				{
 					printk(KERN_WARNING "IFS_write: X_axis position exceeded, maximum is 255 and minimum 0 \n");
 				}
-				else if (ypos > 255)
+				else if (ypos > 120)
 				{
 					printk(KERN_WARNING "IFS_write: Y_axis position exceeded, maximum is 255 and minimum 0 \n");
 				}
 				else
 				{
 					//printk(KERN_INFO "number is: %d",number );
-					position = (255*ypos+xpos)*4;
+					position = (120*ypos+xpos)*4;
 					for(i=0; i<=number; i++)
 					{
 						pos = position +i*4;
