@@ -7,12 +7,12 @@
 
 #include "image.h"
 
-#define MAX_PKT_SIZE 65536
+#define MAX_PKT_SIZE 50000
 #define MAX_IFS_SIZE 16384
 #define MMAP
 
 int kernel[9]={0,0,0,0,1,0,0,0,0};
-int ifs[4]={112,112,1,0};
+int ifs[4]={130,112,1,0};
 int *final_image;
 
 
@@ -51,15 +51,15 @@ int main(void)
 		printf("Cannot open /dev/bram_image for write\n");
 		return -1;
 	}
-	r=(int*)mmap(0,3*MAX_IFS_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fr, 0);
+	r=(int*)mmap(0,MAX_PKT_SIZE-1, PROT_READ | PROT_WRITE, MAP_SHARED, fr, 0);
 	if (r == NULL ) {
 		printf ("\ncouldn't mmap\n");
 		return 0;
 	}
 	//printf("provera 1\n");
-	memcpy(r, image,3*MAX_IFS_SIZE);
+	memcpy(r, image,MAX_PKT_SIZE-1);
 	//printf("provera 2\n");
-	munmap(r, 3*MAX_IFS_SIZE);
+	munmap(r, MAX_PKT_SIZE-1);
 	//printf("provera 3\n");
 	printf("bram_image done\n");
 	close(fr);
@@ -129,7 +129,7 @@ int main(void)
 	for(i = 0; i<110; i++)
 	{
 		fprintf(fm,"\n");
-		for(j=0; j<110; j++)
+		for(j=0; j<128; j++)
 		{
 			fprintf(fm,"%d,",final_image[j+i*110]);
 			fflush(fm);
