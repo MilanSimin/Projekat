@@ -12,7 +12,7 @@
 #define MMAP
 
 int kernel[9]={0,0,0,0,1,0,0,0,0};
-int ifs[4]={11,11,1,0};
+int ifs[4]={11,10,1,0};
 int *final_image;
 int num_of_bytes = 500;
 
@@ -113,9 +113,9 @@ int main(void)
 		return -1;
 	}
 
-	for(i=72; i<62; i--){
+	/*for(i=72; i>62; i--){
 		printf("final_image[%d] is %d\n",i,final_image[i]);
-	}
+	}*/
 
 	fm =fopen("final_image.txt","w");
 	if (fm==NULL)
@@ -124,7 +124,7 @@ int main(void)
 		return -1;
 	}
 	printf("final_image opened\n");
-	for(i = 0; i<9; i++)
+	for(i = 0; i<8; i++)
 	{
 		fprintf(fm,"\n");
 		for(j=0; j<9; j++)
