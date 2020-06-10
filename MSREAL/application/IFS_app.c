@@ -7,7 +7,7 @@
 
 #include "image.h"
 
-#define MAX_PKT_SIZE 50000
+#define MAX_PKT_SIZE 60000
 #define MAX_IFS_SIZE 16384
 #define MMAP
 
@@ -51,16 +51,16 @@ int main(void)
 		printf("Cannot open /dev/bram_image for write\n");
 		return -1;
 	}
-	r=(int*)mmap(0,MAX_PKT_SIZE-1, PROT_READ | PROT_WRITE, MAP_SHARED, fr, 0);
+	r=(int*)mmap(0,MAX_PKT_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fr, 0);
 	if (r == NULL ) {
 		printf ("\ncouldn't mmap\n");
 		return 0;
 	}
-	//printf("provera 1\n");
-	memcpy(r, image,MAX_PKT_SIZE-1);
-	//printf("provera 2\n");
-	munmap(r, MAX_PKT_SIZE-1);
-	//printf("provera 3\n");
+	printf("provera 1\n");
+	memcpy(r, image,MAX_PKT_SIZE);
+	printf("provera 2\n");
+	munmap(r, MAX_PKT_SIZE);
+	printf("provera 3\n");
 	printf("bram_image done\n");
 	close(fr);
 	if(fr < 0)
@@ -126,12 +126,12 @@ int main(void)
 		return -1;
 	}
 	printf("final_image opened\n");
-	for(i = 0; i<120; i++)
+	for(i = 0; i<119; i++)
 	{
 		fprintf(fm,"\n");
-		for(j=0; j<120; j++)
+		for(j=0; j<119; j++)
 		{
-			fprintf(fm,"%d,",final_image[j+i*120]);
+			fprintf(fm,"%d,",final_image[j+i*119]);
 			fflush(fm);
 		}
 	}
