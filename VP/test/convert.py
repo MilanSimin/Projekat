@@ -13,8 +13,8 @@ im = cv2.cvtColor(resized,cv2.COLOR_BGR2GRAY)
 
 with open("image.h", "w") as text_file:
 	print('const unsigned char image []= {',file=text_file)
-	cut_size_x = 130
-	cut_size_y = 110
+	cut_size_x = 120
+	cut_size_y = 120
 	x_size = 0
 	for x in im:
 		y_size = 0
