@@ -7,7 +7,7 @@
 
 #include "image.h"
 
-#define MAX_PKT_SIZE 60000
+#define MAX_PKT_SIZE 57600
 #define MAX_IFS_SIZE 16384
 #define MMAP
 
@@ -128,12 +128,12 @@ int main(void)
 	printf("final_image opened\n");
 	for(i = 0; i<119; i++)
 	{
-		fprintf(fm,"\n");
 		for(j=0; j<119; j++)
 		{
 			fprintf(fm,"%d,",final_image[j+i*119]);
 			fflush(fm);
 		}
+		fprintf(fm,"\n");
 	}
 	printf("final_image written\n");
 
