@@ -12,7 +12,7 @@
 #define MMAP
 
 int kernel[9]={0,0,0,0,1,0,0,0,0};
-int ifs[4]={120,120,1,0};
+int ifs[4]={121,120,1,0};
 int *final_image;
 
 
@@ -56,11 +56,11 @@ int main(void)
 		printf ("\ncouldn't mmap\n");
 		return 0;
 	}
-	printf("provera 1\n");
+	//printf("provera 1\n");
 	memcpy(r, image,MAX_PKT_SIZE);
-	printf("provera 2\n");
+	//printf("provera 2\n");
 	munmap(r, MAX_PKT_SIZE);
-	printf("provera 3\n");
+	//printf("provera 3\n");
 	printf("bram_image done\n");
 	close(fr);
 	if(fr < 0)
@@ -98,7 +98,7 @@ int main(void)
 		printf("Cannot open /dev/bram_after_conv for write\n");
 		return -1;
 	}
-	final_image = (int *) malloc(MAX_PKT_SIZE+1);
+	final_image = (int *) malloc(MAX_PKT_SIZE);
 	n=(int*)mmap(0,MAX_PKT_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fn, 0);
 	if (n == NULL ) {
 		printf ("\ncouldn't mmap\n");
@@ -128,9 +128,9 @@ int main(void)
 	printf("final_image opened\n");
 	for(i = 0; i<118; i++)
 	{
-		for(j=0; j<118; j++)
+		for(j=0; j<119; j++)
 		{
-			fprintf(fm,"%d,",final_image[j+i*119]);
+			fprintf(fm,"%d,",final_image[j+i*118]);
 			fflush(fm);
 		}
 		fprintf(fm,"\n");
