@@ -11,7 +11,7 @@
 #define MAX_IFS_SIZE 16384
 #define MMAP
 
-int kernel[9]={-1,-1,-1,-1,8,-1,-1,-1,-1};
+int kernel[9]={0,0,0,0,1,0,0,0,0};
 int ifs[4]={120,120,1,0};
 int *final_image;
 
@@ -126,9 +126,9 @@ int main(void)
 		return -1;
 	}
 	printf("final_image opened\n");
-	for(i = 0; i<119; i++)
+	for(i = 0; i<118; i++)
 	{
-		for(j=0; j<119; j++)
+		for(j=0; j<118; j++)
 		{
 			fprintf(fm,"%d,",final_image[j+i*119]);
 			fflush(fm);
