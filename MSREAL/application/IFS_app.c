@@ -11,7 +11,7 @@
 #define MAX_IFS_SIZE 16384
 #define MMAP
 
-int kernel[9]={0,0,0,0,1,0,0,0,0};
+int kernel[9]={-1,-1,-1,-1,8,-1,-1,-1,-1};
 int ifs[4]={121,120,1,0};
 int *final_image;
 
