@@ -3,18 +3,18 @@ import numpy
 import sys
 
 img = cv2.imread(str(sys.argv[1]))
-width = 120;
-height = 120;
+width = 256;
+height = 256;
 dim = (width, height)
 # resize image
 resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
 
 im = cv2.cvtColor(resized,cv2.COLOR_BGR2GRAY)
 
-with open("image.h", "w") as text_file:
+with open("image_small.h", "w") as text_file:
 	print('const unsigned char image []= {',file=text_file)
-	cut_size_x = 120
-	cut_size_y = 120
+	cut_size_x = 10
+	cut_size_y = 10
 	x_size = 0
 	for x in im:
 		y_size = 0
