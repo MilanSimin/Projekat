@@ -5,7 +5,7 @@ from PIL import Image
 #from matplotlib import pyplot
 
 
-with open("image.h", "r") as text_file:
+with open("image2.txt", "r") as text_file:
 
 	iksevi = text_file.readlines() #iksevi = redovi
 	kolone = iksevi[1].split(',')
