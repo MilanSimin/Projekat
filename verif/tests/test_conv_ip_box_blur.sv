@@ -1,5 +1,3 @@
-//------------------------------------------------------------------------------
-// Copyright (c) 2019 Elsys Eastern Europe
 `ifndef TEST_CONV_IP_BOX_BLUR_SV
 `define TEST_CONV_IP_BOX_BLUR_SV
 
