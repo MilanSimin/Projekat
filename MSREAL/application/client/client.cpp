@@ -34,15 +34,15 @@ int main(int argc, char **argv)
 	//int kernel[9];
 	int selectImage, selectKernel;
 	int width = 120, height = 120;
-	long words;
-	char c, buffer[255];
+	int words = 0;
+	char c, buffer[1024];
 	if( argc != 2)
 	{
 		cout <<" ERROR: argc must be 2" << endl;
 		return -1;
 	}
 
-	cout << "Izaberite sliku za obradu:\n 1. lenna.png \n 2. stelvio3.jpeg\n 3. stelvio5.jpeg\n" << endl;
+	/*cout << "Izaberite sliku za obradu:\n 1. lenna.png \n 2. stelvio3.jpeg\n 3. stelvio5.jpeg\n" << endl;
 	cin >> selectImage;
 
 	switch(selectImage){
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 	{
 		printf("cannot close final_image.txt\n");
 		return -1;
-	}
+	}*/
 	/*cout<<"Izaberite tip obrade slike:\n 1. Identity Operator \n2. Edge detection \n3. Sharpening \n"<<endl;
 	cin >> selectKernel;
 
@@ -156,25 +156,31 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	bzero(buffer, 255);
-	cout<<"Ako zelite da prekinete komunikaciju sa serverom ukucajte 'Q'\n"<<endl;
+	//bzero(buffer, 255);
+	//cout<<"Ako zelite da prekinete komunikaciju sa serverom ukucajte 'Q'\n"<<endl;
 	
-	f = fopen("image.h","r");
+	f = fopen("proba.txt","r");
 	char ch;
-	while( c=getc(f) != EOF )
+	while( (c=fgetc(f)) != EOF )
 	{
 		fscanf(f,"%s", buffer);
-		if(isspace(c) || c=='\n');
-		words++;
+		if(isspace(c) || c=='\t'){
+			words++;
+		}
 	}
+	//printf("words %ld \n", words);
+	int sz = ftell(f);
+	cout<<"sz: "<<sz<<endl;
 	cout<<"words: "<<words<<endl;
-	write (sockfd, &words, sizeof(long));
+	write (sockfd, &words, sizeof(int));
 	rewind(f);
 	
 	while(ch != EOF)
 	{
 		fscanf(f, "%s", buffer);
-		write(sockfd, buffer, 255);
+		cout<<buffer<<endl;
+		write(sockfd, &buffer, 1024);
+		//cout<<buffer<<endl;
 		ch=fgetc(f);
 	}
 	cout<<"File send succesfully\n"<<endl;

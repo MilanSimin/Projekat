@@ -77,7 +77,7 @@ int main(){
 
 	FILE *f;
 	int ch = 0;
-	f = fopen("image_server.h", "w");
+	f = fopen("image_server.txt", "w");
 	int words;
 	
 	read(newsockfd, &words, sizeof(long));
