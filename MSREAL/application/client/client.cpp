@@ -8,6 +8,9 @@
 #include <unistd.h>
 #include <errno.h>
 #include <arpa/inet.h> 
+#include <ctype.h>
+#include <sys/mman.h>
+#include <fcntl.h>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -26,53 +29,19 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-	FILE *fp;
+	FILE *fp,*f;
 	Mat image, newImage;
-	int kernel[9];
+	//int kernel[9];
 	int selectImage, selectKernel;
 	int width = 120, height = 120;
+	long words;
+	char c, buffer[255];
 	if( argc != 2)
 	{
-		cout <<" Usage: display_image ImageToLoadAndDisplay" << endl;
+		cout <<" ERROR: argc must be 2" << endl;
 		return -1;
 	}
 
-	
-
-	int sockfd=0, n=0;
-	char recvBuff[1024];
-	struct sockaddr_in serv_addr;
-	char ans;
-	/* klijentska aplikacija se poziva sa ./ime_aplikacija ip_adresa_servera slika za obradu */
-	/* kreiraj socket za komunikaciju sa serverom */
-	if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-	{
-		printf("\n Error : Could not create socket \n");
-		return 1;
-	}
-	memset(&serv_addr, 0, sizeof(serv_addr)); 
-
-	/*podaci neophodi za komunikaciju sa serverom*/
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(5001);
-
-	/* inet_pton konvertuje ip adresu iz stringa u format
-	neophodan za serv_addr strukturu */
-	if(inet_pton(AF_INET, argv[1], &serv_addr.sin_addr)<=0)
-	{ 
-		printf("\n inet_pton error occured\n");
-		return 1;
-	} 
-
-	/* povezi se sa serverom definisanim preko ip adrese i porta */
-	if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-	{
-		printf("\n Error : Connect Failed \n");
-		return 1;
-	}
-
-	n = read (sockfd, recvBuff, 1024);
-	recvBuff[n] = 0; //terminiraj primljeni string kako bi ga mogao ispisati
 	cout << "Izaberite sliku za obradu:\n 1. lenna.png \n 2. stelvio3.jpeg\n 3. stelvio5.jpeg\n" << endl;
 	cin >> selectImage;
 
@@ -121,7 +90,7 @@ int main(int argc, char **argv)
 		printf("cannot open image.txt\n");
 		return -1;
 	}
-	fprintf(fp,"int image[] = { ");
+	fprintf(fp,"int image[] = {");
 	for (int x=0; x<newImage.cols; x++) {
 		for (int y=0; y<newImage.rows; y++) {
 			fprintf(fp,"%d,", newImage.at<uchar>(x,y));
@@ -135,45 +104,82 @@ int main(int argc, char **argv)
 		printf("cannot close final_image.txt\n");
 		return -1;
 	}
-	cout<<"Izaberite tip obrade slike:\n 1. Identity Operator \n2. Edge detection \n3. Sharpening \n"<<endl;
+	/*cout<<"Izaberite tip obrade slike:\n 1. Identity Operator \n2. Edge detection \n3. Sharpening \n"<<endl;
 	cin >> selectKernel;
 
 	switch(selectKernel){
 	
 	case 1:
-		kernel[9]={0,0,0,0,1,0,0,0,0};
+		int kernel[9]={0,0,0,0,1,0,0,0,0};
 		break;
-
 	case 2:
-		kernel[9]={-1,-1,-1,-1,8,-1,-1,-1,-1};
+		//kernel[9]={-1,-1,-1,-1,8,-1,-1,-1,-1};
 		break;
 	case 3: 
-
-		kernel[9]={0, -1, 0,-1, 5, -1, 0, -1, 0};
+		//kernel[9]={0, -1, 0,-1, 5, -1, 0, -1, 0};
 		break;
-
 	default:
 		cerr << "Invalid selection" << endl;
-	
 	break;
 
 	}
-	
+	*/
+	int sockfd=0, n=0;
+	char recvBuff[1024];
+	struct sockaddr_in serv_addr;
+	char ans;
+	/* klijentska aplikacija se poziva sa ./ime_aplikacija ip_adresa_servera slika za obradu */
+	/* kreiraj socket za komunikaciju sa serverom */
+	if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	{
+		printf("\n Error : Could not create socket \n");
+		return 1;
+	}
+	memset(&serv_addr, 0, sizeof(serv_addr)); 
+
+	/*podaci neophodi za komunikaciju sa serverom*/
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(5001);
+
+	/* inet_pton konvertuje ip adresu iz stringa u format
+	neophodan za serv_addr strukturu */
+	if(inet_pton(AF_INET, argv[1], &serv_addr.sin_addr)<=0)
+	{ 
+		printf("\n inet_pton error occured\n");
+		return 1;
+	} 
+
+	/* povezi se sa serverom definisanim preko ip adrese i porta */
+	if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+	{
+		printf("\n Error : Connect Failed \n");
+		return 1;
+	}
+
+	bzero(buffer, 255);
 	cout<<"Ako zelite da prekinete komunikaciju sa serverom ukucajte 'Q'\n"<<endl;
-
-	while(1)
+	
+	f = fopen("image.h","r");
+	char ch;
+	while( c=getc(f) != EOF )
 	{
-		ans = getchar();
-		write (sockfd, &ans,1);
-
-	if (ans == 'q') 
+		fscanf(f,"%s", buffer);
+		if(isspace(c) || c=='\n');
+		words++;
+	}
+	cout<<"words: "<<words<<endl;
+	write (sockfd, &words, sizeof(long));
+	rewind(f);
+	
+	while(ch != EOF)
 	{
-		return 0;
+		fscanf(f, "%s", buffer);
+		write(sockfd, buffer, 255);
+		ch=fgetc(f);
 	}
-
-
-
-	}
+	cout<<"File send succesfully\n"<<endl;
+	
+	close(sockfd);
 	return 0;
         
 }
