@@ -50,6 +50,8 @@ static struct IFS_info *bp3 = NULL;
 int position = 0;
 int number = 0;
 int counter = 0;
+int endRead = 0;
+int k=0;
 
 //****************************** FUNCTION PROTOTYPES ****************************************//
 static int IFS_probe (struct platform_device *pdev);
@@ -339,6 +341,11 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 	int len,temp;
 	int value, status, cmd, lines, columns, after_conv;
 	int minor = MINOR(pfile->f_inode->i_rdev);
+	if (endRead == 1)
+	{
+		endRead=0;
+		return 0;
+	}
 	switch(minor){
 
 
@@ -390,22 +397,48 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 			}
 			break;
 
-		case 3:
+		case 3://image_conv
 
-			status = ioread32(ip->base_addr+12);
-			printk(KERN_INFO"Ready is: %d\n", status);
-			cmd = ioread32(ip->base_addr +8);
+				status = ioread32(ip->base_addr+k*4);
+				//printk(KERN_INFO"Ready is: %d\n", status);
+				len = scnprintf(buff, BUFF_SIZE, "%d\n", status);
+				*offset += len;
+				ret=copy_to_user(buf,buff,len);
+				if(ret)
+				{
+					return -EFAULT;
+				}
+				k++;
+			if(k == 4)
+			{
+				endRead=1;
+				k = 0;
+			}
+			/*cmd = ioread32(ip->base_addr +8);
 			printk(KERN_INFO"Command is: %d\n", cmd);
-			lines = ioread32(ip->base_addr+4);
-			printk(KERN_INFO"Lines is: %d\n", lines);
-			columns = ioread32(ip->base_addr);
-			printk(KERN_INFO"Columns is: %d\n", columns);
-			temp = scnprintf(buff, BUFF_SIZE, "%d\n", lines);
+			len = scnprintf(buff, BUFF_SIZE, "%d\n", cmd);
 			ret=copy_to_user(buf,buff,len);
 			if(ret)
 			{
 				return -EFAULT;
 			}
+			lines = ioread32(ip->base_addr+4);
+			printk(KERN_INFO"Lines is: %d\n", lines);
+			len = scnprintf(buff, BUFF_SIZE, "%d\n", lines);
+			ret=copy_to_user(buf,buff,len);
+			if(ret)
+			{
+				return -EFAULT;
+			}
+			columns = ioread32(ip->base_addr);
+			printk(KERN_INFO"Columns is: %d\n", columns);
+			len = scnprintf(buff, BUFF_SIZE, "%d\n", columns);
+			ret=copy_to_user(buf,buff,len);
+			if(ret)
+			{
+				return -EFAULT;
+			}*/
+			//endRead =1;
 
 			break;
 

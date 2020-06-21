@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 {
      int sockfd, newsockfd, portno;
      socklen_t clilen;
-     char buffer[512];
+     int buffer[120*120];
      struct sockaddr_in serv_addr, cli_addr;
      int n;
      if (argc < 2) {
@@ -50,27 +50,47 @@ int main(int argc, char *argv[])
      newsockfd = accept(sockfd, 
                  (struct sockaddr *) &cli_addr, 
                  &clilen);
-     if (newsockfd < 0) 
-          error("ERROR on accept");
+	if (newsockfd < 0) 
+        	error("ERROR on accept");
           
+	          
           
-          
-          FILE *fp;
-         int ch = 0;
-            fp = fopen("glad_receive.txt","a");            
-            int words;
-		read(newsockfd, &words, sizeof(int));
-            //printf("Passed integer is : %d\n" , words);      //Ignore , Line for Testing
-          while(ch != words)
-       	   {
-        	 read(newsockfd , buffer , 512); 
-	   	 fprintf(fp , " %s" , buffer);   
-		 //printf(" %s %d "  , buffer , ch); //Line for Testing , Ignore
-		 ch++;
-	   }
-     	printf("The file was received successfully\n");
-	   printf("The new file created is glad5.txt");
-     close(newsockfd);
-     close(sockfd);
-     return 0; 
+        FILE *fp;
+        int ch = 0;
+        fp = fopen("glad_receive.txt","w");            
+        int words;
+	read(newsockfd, &words, sizeof(int));
+	printf("words is: %d\n", words);
+	int temp[words];
+        //bzero(temp, words);
+	int nn;
+	//nn=read(newsockfd ,temp, sizeof(int)*words);
+
+	//printf("provera: %d\n",nn);
+	char *buff = (char *)temp;
+	size_t rem = sizeof(int)*words;
+	printf("REM: %d\n",rem);
+	while(rem){
+		ssize_t recvd = read(newsockfd,buff,rem);
+		rem -= recvd;
+		buff += recvd;
+	}
+	printf("temp[0] is %d\n",temp[0]);
+	printf("temp[400] is %d\n",temp[400]);
+	
+	while(ch != words)
+       	{
+		//printf("provera: %d\n",temp[ch]);
+	   	fprintf(fp, "%d ", temp[ch]);
+		ch++;
+		if((ch%120) == 0){
+			fprintf(fp,"\n");
+		}
+	}
+	printf("ch: %d\n", ch);
+	//printf("The file was received successfully\n");
+	printf("The new file created is glad5.txt\n");
+	close(newsockfd);
+	close(sockfd);
+	return 0; 
 }
