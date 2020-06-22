@@ -42,10 +42,10 @@ dev_t my_dev_id;
 static struct class *my_class;
 static struct device *my_device;
 static struct cdev *my_cdev;
-static struct IFS_info *ip = NULL;
-static struct IFS_info *bp1 = NULL;
-static struct IFS_info *bp2 = NULL;
-static struct IFS_info *bp3 = NULL;
+static struct IFS_info *ip = NULL;//image_conv
+static struct IFS_info *bp1 = NULL;//bram_image
+static struct IFS_info *bp2 = NULL;//bram_kernel
+static struct IFS_info *bp3 = NULL;//bram_after_conv
 
 int position = 0;
 int number = 0;
@@ -116,7 +116,7 @@ static int IFS_probe (struct platform_device *pdev)
 
 	switch(counter){
 
-		case  0:
+		case  0://bram_image
 
 			bp1 = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
 			if(!bp1){
@@ -152,7 +152,7 @@ static int IFS_probe (struct platform_device *pdev)
 			error3:
 				return rc;
 
-		case 1:
+		case 1://bram_kernel
 			
 			bp2 = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
 			if(!bp2){
@@ -189,7 +189,7 @@ static int IFS_probe (struct platform_device *pdev)
 				return rc;
 
 
-		case 2:
+		case 2://bram_after_conv
 			
 			bp3 = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
 			if(!bp3){
@@ -224,7 +224,7 @@ static int IFS_probe (struct platform_device *pdev)
 			error8:
 				return rc;
 	
-		case 3:
+		case 3://image_conv
 
 			ip = (struct IFS_info *) kmalloc(sizeof(struct IFS_info), GFP_KERNEL);
 			if(!ip){
@@ -272,7 +272,7 @@ static int IFS_remove(struct platform_device *pdev)
 
 	switch(counter){
 
-		case 0:
+		case 0://bram_image
 			printk(KERN_WARNING "BRAM_IMAGE_remove: platform driver removing\n");
 			iowrite32(0,bp1->base_addr);
 			iounmap(bp1->base_addr);
@@ -282,7 +282,7 @@ static int IFS_remove(struct platform_device *pdev)
 
 		break;
 
-		case 1:
+		case 1://bram_kernel
 			printk(KERN_WARNING "BRAM_KERNEL_remove: platform driver removing\n");
 			iowrite32(0,bp2->base_addr);
 			iounmap(bp2->base_addr);
@@ -292,7 +292,7 @@ static int IFS_remove(struct platform_device *pdev)
 			counter--;
 		break;
 
-		case 2:
+		case 2://bram_after_conv
 			printk(KERN_WARNING "BRAM_AFTER_CONV_remove: platform driver removing\n");
 			iowrite32(0,bp3->base_addr);
 			iounmap(bp3->base_addr);
@@ -303,7 +303,7 @@ static int IFS_remove(struct platform_device *pdev)
 		break;
 		
 
-		case 3:
+		case 3://image_conv
 			printk(KERN_WARNING "IFS_remove: platform driver removing\n");
 			iowrite32(0,ip->base_addr);
 			iounmap(ip->base_addr);
@@ -349,96 +349,66 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 	switch(minor){
 
 
-		case 0:
-			for(i=0; i<10; i++)
-			{
-				pos = position + i*4;
-				value  = ioread32(bp1->base_addr + pos);
-				printk (KERN_INFO "value is: %d\n",value);
-				printk (KERN_INFO "position is: %d\n",pos);
-				temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
-				ret = copy_to_user(buf, buff, len);
-				if(ret){
-					return -EFAULT;
-				}
+		case 0://bram_image
+			
+			pos = position + i*4;
+			value  = ioread32(bp1->base_addr + pos);
+			printk (KERN_INFO "value is: %d\n",value);
+			printk (KERN_INFO "position is: %d\n",pos);
+			temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+			ret = copy_to_user(buf, buff, len);
+			if(ret){
+				return -EFAULT;
 			}
+			
 			break;
 
 
-		case 1:
-
-			for(i=0; i<10; i++)
-			{
-				pos = position + i*4;
-				value  = ioread32(bp2->base_addr + pos);
-				printk (KERN_INFO "value is: %d\n",value);
-				printk (KERN_INFO "position is: %d\n",pos);
-				temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
-				ret = copy_to_user(buf, buff, len);
-				if(ret){
-					return -EFAULT;
-				}
+		case 1://bram_kernel
+			pos = position + i*4;
+			value  = ioread32(bp2->base_addr + pos);
+			printk (KERN_INFO "value is: %d\n",value);
+			printk (KERN_INFO "position is: %d\n",pos);
+			temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+			ret = copy_to_user(buf, buff, len);
+			if(ret){
+				return -EFAULT;
 			}
+			
 			break;
 
-		case 2:
-			for(i=0; i<10; i++){
-
-				after_conv = ioread32(bp3->base_addr+i*4);
-				printk(KERN_INFO"after_conv is: %d \n", after_conv);
-				printk(KERN_INFO "position is: %d\n",i*4);
-				temp = scnprintf(buff, BUFF_SIZE, "%d\n", after_conv);
-				ret=copy_to_user(buf,buff,len);
-				if(ret)
-				{
-					return -EFAULT;
-				}
-
+		case 2://bram_after_conv
+			after_conv = ioread32(bp3->base_addr+i*4);
+			printk(KERN_INFO"after_conv is: %d \n", after_conv);
+			printk(KERN_INFO "position is: %d\n",i*4);
+			temp = scnprintf(buff, BUFF_SIZE, "%d\n", after_conv);
+			ret=copy_to_user(buf,buff,len);
+			if(ret)
+			{
+				return -EFAULT;
 			}
+
+			
 			break;
 
 		case 3://image_conv
 
-				status = ioread32(ip->base_addr+k*4);
-				//printk(KERN_INFO"Ready is: %d\n", status);
-				len = scnprintf(buff, BUFF_SIZE, "%d\n", status);
-				*offset += len;
-				ret=copy_to_user(buf,buff,len);
-				if(ret)
-				{
-					return -EFAULT;
-				}
-				k++;
+			status = ioread32(ip->base_addr+k*4);
+			//printk(KERN_INFO"Ready is: %d\n", status);
+			len = scnprintf(buff, BUFF_SIZE, "%d\n", status);
+			*offset += len;
+			ret=copy_to_user(buf,buff,len);
+			if(ret)
+			{
+				return -EFAULT;
+			}
+			k++;
 			if(k == 4)
 			{
 				endRead=1;
 				k = 0;
 			}
-			/*cmd = ioread32(ip->base_addr +8);
-			printk(KERN_INFO"Command is: %d\n", cmd);
-			len = scnprintf(buff, BUFF_SIZE, "%d\n", cmd);
-			ret=copy_to_user(buf,buff,len);
-			if(ret)
-			{
-				return -EFAULT;
-			}
-			lines = ioread32(ip->base_addr+4);
-			printk(KERN_INFO"Lines is: %d\n", lines);
-			len = scnprintf(buff, BUFF_SIZE, "%d\n", lines);
-			ret=copy_to_user(buf,buff,len);
-			if(ret)
-			{
-				return -EFAULT;
-			}
-			columns = ioread32(ip->base_addr);
-			printk(KERN_INFO"Columns is: %d\n", columns);
-			len = scnprintf(buff, BUFF_SIZE, "%d\n", columns);
-			ret=copy_to_user(buf,buff,len);
-			if(ret)
-			{
-				return -EFAULT;
-			}*/
-			//endRead =1;
+			
 
 			break;
 
@@ -469,18 +439,16 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 	{
 
 		sscanf(buff,"(%d,%d);%d", &xpos, &ypos, &rgb); 
-		//printk(KERN_INFO "Prvi slucaj, bez broja pre (\n");
 
 	} else {
 
 		sscanf(buff, "%d(%d,%d);%d", &number, &xpos, &ypos, &rgb);
-		//printk(KERN_INFO "Drugi slucaj, sa brojem pre (\n");
 
 	}
 
 	switch(minor){
 
-		case 0:
+		case 0://bram_image
 			if(ret != -EINVAL) //checking for parsing error
 				{
 				if (xpos > 120)
@@ -493,7 +461,6 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				}
 				else
 				{
-					//printk(KERN_INFO "number is: %d",number );
 					position = (120*ypos+xpos)*4;
 					for(i=0; i<=number; i++)
 					{
@@ -512,7 +479,7 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 
 			break;
 
-		case 1:
+		case 1://bram_kernel
 			if(ret != -EINVAL) //checking for parsing error
 			{
 				if (xpos > 3)
@@ -540,14 +507,14 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 		break;
 
 
-		case 2:
+		case 2://bram_after_conv
 
 			printk(KERN_WARNING "IFS_write: cannot write in this BRAM \n");
 
 		break;
 
 
-		case 3:
+		case 3://image_conv
 			if (ret != -EINVAL){
 				iowrite32(xpos, ip->base_addr); //columns
 				iowrite32(ypos, ip->base_addr +4); //lines

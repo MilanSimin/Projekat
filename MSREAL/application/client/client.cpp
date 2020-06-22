@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -26,28 +27,19 @@
 using namespace cv;
 using namespace std;
 
-
-int main(int argc, char **argv)
+void error(const char *msg)
 {
-	FILE *fp,*f;
-	Mat image, newImage;
-	//int kernel[9];
-	int selectImage, selectKernel;
+    perror(msg);
+    exit(0);
+}
+//************************************************************************
+void chooseImage (int select){
+
+	Mat image, newImage;	
 	int width = 120, height = 120;
-	int words = 0;
-	char c, buffer[1024];
-	if( argc != 2)
-	{
-		cout <<" ERROR: argc must be 2" << endl;
-		return -1;
-	}
+	switch(select){
 
-	/*cout << "Izaberite sliku za obradu:\n 1. lenna.png \n 2. stelvio3.jpeg\n 3. stelvio5.jpeg\n" << endl;
-	cin >> selectImage;
-
-	switch(selectImage){
-	
-	case 1:
+	case 1: 
 		image = imread("lenna.png", CV_LOAD_IMAGE_GRAYSCALE);
 		resize(image, newImage, Size(width,height));
 
@@ -56,136 +48,228 @@ int main(int argc, char **argv)
 		waitKey(0);
 
 		break;
-
 	case 2:
+		image = imread("stelvio1.jpeg", CV_LOAD_IMAGE_GRAYSCALE);
+		resize(image, newImage, Size(width,height));
+
+		namedWindow("Original image", WINDOW_AUTOSIZE );
+		imshow("Original image", newImage );
+		waitKey(0);
+
+		break;
+
+	case 3:
+		image = imread("stelvio2.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+		resize(image, newImage, Size(width,height));
+
+		namedWindow("Original image", WINDOW_AUTOSIZE );
+		imshow("Original image", newImage );
+		waitKey(0);
+
+		break;
+
+	case 4:
 		image = imread("stelvio3.jpeg", CV_LOAD_IMAGE_GRAYSCALE);
 		resize(image, newImage, Size(width,height));
 
 		namedWindow("Original image", WINDOW_AUTOSIZE );
 		imshow("Original image", newImage );
 		waitKey(0);
-		
-		break;
-	case 3: 
 
+		break;
+
+	case 5:
 		image = imread("stelvio5.jpeg", CV_LOAD_IMAGE_GRAYSCALE);
 		resize(image, newImage, Size(width,height));
 
 		namedWindow("Original image", WINDOW_AUTOSIZE );
 		imshow("Original image", newImage );
 		waitKey(0);
-		
+
 		break;
 
-	default:
-		cerr << "Invalid selection" << endl;
-	
+	default: 
+		cerr<<"Invalid selection" << endl;
+
 	break;
 
 	}
 
-	fp =fopen("image.h","w");
+
+	FILE *fp;
+	fp =fopen("image.txt","w");
 	if (fp==NULL)
 	{
 		printf("cannot open image.txt\n");
-		return -1;
 	}
-	fprintf(fp,"int image[] = {");
 	for (int x=0; x<newImage.cols; x++) {
 		for (int y=0; y<newImage.rows; y++) {
-			fprintf(fp,"%d,", newImage.at<uchar>(x,y));
+			fprintf(fp,"%d ", newImage.at<uchar>(x,y));
 		}
 		fprintf(fp,"\n");
 	}
-	fprintf(fp,"};");
 
 	if(fclose(fp) == EOF)
 	{
 		printf("cannot close final_image.txt\n");
-		return -1;
-	}*/
-	/*cout<<"Izaberite tip obrade slike:\n 1. Identity Operator \n2. Edge detection \n3. Sharpening \n"<<endl;
-	cin >> selectKernel;
+	}
+}
+//***************************************************************************
 
-	switch(selectKernel){
+
+
+int main(int argc, char *argv[])
+{
+	//Mat image, newImage;
+	int selectImage, selectKernel;
+	int temp[120*120], temp2[120*120];	
+	int sockfd, portno, n;
+	struct sockaddr_in serv_addr;
+	struct hostent *server;
+
+	if (argc < 3)
+	{
+		fprintf(stderr,"usage %s hostname port\n", argv[0]);
+		exit(0);
+	}
+
+
+	portno = atoi(argv[2]);
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd < 0) 
+		error("ERROR opening socket");
+		server = gethostbyname(argv[1]);
+	if (server == NULL) {
+		fprintf(stderr,"ERROR, no such host\n");
+		exit(0);
+	}
+	bzero((char *) &serv_addr, sizeof(serv_addr));
+	serv_addr.sin_family = AF_INET;
+	bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,server->h_length);
+	serv_addr.sin_port = htons(portno);
+	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
+		error("ERROR connecting");
+//*************************************************CREATIN IMAGE.TXT*************************************************
+	cout << "Izaberite sliku za obradu:\n 1. lenna.png \n 2. stelvio1.jpeg\n 3. stelvio2.jpeg\n 4. stelvio3.jpeg\n 5. stelvio5.jpeg\n "<< endl;
+	cin >> selectImage;
+	int kernel1 [9], kernel2[9], kernel3[9];
 	
+	switch(selectImage){
+
 	case 1:
-		int kernel[9]={0,0,0,0,1,0,0,0,0};
+		//kernel1  = {0, 0, 0, 0, 1, 0, 0, 0, 0};
+		kernel1[0] = 0;
+		kernel1[1] = 0;
+		kernel1[2] = 0;
+		kernel1[3] = 0;
+		kernel1[4] = 1;
+		kernel1[5] = 0;
+		kernel1[6] = 0;
+		kernel1[7] = 0;
+		kernel1[8] = 0;
+		write(sockfd, kernel1, sizeof(int)*9);
 		break;
+
 	case 2:
-		//kernel[9]={-1,-1,-1,-1,8,-1,-1,-1,-1};
+		kernel2[0] = -1;
+		kernel2[1] = -1;
+		kernel2[2] = -1;
+		kernel2[3] = -1;
+		kernel2[4] = 8;
+		kernel2[5] = -1;
+		kernel2[6] = -1;
+		kernel2[7] = -1;
+		kernel2[8] = -1;
+		write(sockfd, kernel2, sizeof(int)*9);
 		break;
-	case 3: 
-		//kernel[9]={0, -1, 0,-1, 5, -1, 0, -1, 0};
+
+	case 3:
+		// kernel3={0, -1, 0, -1, 5, -1, 0, -1, 0};
+		kernel3[0] = 0;
+		kernel3[1] = -1;
+		kernel3[2] = 0;
+		kernel3[3] = -1;
+		kernel3[4] = 5;
+		kernel3[5] = -1;
+		kernel3[6] = 0;
+		kernel3[7] = -1;
+		kernel3[8] = 0;
+		write(sockfd, kernel3, sizeof(int)*9);
 		break;
+
 	default:
-		cerr << "Invalid selection" << endl;
+		cerr<<"Invalid selection" << endl;
+
 	break;
 
 	}
-	*/
-	int sockfd=0, n=0;
-	char recvBuff[1024];
-	struct sockaddr_in serv_addr;
-	char ans;
-	/* klijentska aplikacija se poziva sa ./ime_aplikacija ip_adresa_servera slika za obradu */
-	/* kreiraj socket za komunikaciju sa serverom */
-	if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-	{
-		printf("\n Error : Could not create socket \n");
-		return 1;
-	}
-	memset(&serv_addr, 0, sizeof(serv_addr)); 
 
-	/*podaci neophodi za komunikaciju sa serverom*/
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(5001);
+	chooseImage(selectImage);
 
-	/* inet_pton konvertuje ip adresu iz stringa u format
-	neophodan za serv_addr strukturu */
-	if(inet_pton(AF_INET, argv[1], &serv_addr.sin_addr)<=0)
-	{ 
-		printf("\n inet_pton error occured\n");
-		return 1;
-	} 
+//**************************************************SELECTING KERNEL AND SENDING*******************************************
 
-	/* povezi se sa serverom definisanim preko ip adrese i porta */
-	if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-	{
-		printf("\n Error : Connect Failed \n");
-		return 1;
-	}
-
-	//bzero(buffer, 255);
-	//cout<<"Ako zelite da prekinete komunikaciju sa serverom ukucajte 'Q'\n"<<endl;
+	cout<<"Izaberite tip obrade slike:\n 1. Identity Operator \n2. Edge detection \n3. Sharpening \n"<<endl;
+	cin >> selectKernel;
 	
-	f = fopen("proba.txt","r");
-	char ch;
-	while( (c=fgetc(f)) != EOF )
-	{
-		fscanf(f,"%s", buffer);
-		if(isspace(c) || c=='\t'){
-			words++;
+
+//**************************************************SENDING IMAGE TO SERVER*************************************************
+	cout<<"sending image to server"<<endl;
+	FILE *f;
+	int words = 0, k=0;
+	char c, ch;
+	f=fopen("image.txt","r");
+	while((c=fgetc(f))!=EOF)			
+	{	
+		fscanf(f, "%d", temp);
+		if(isspace(c) || c=='\n')
+		words++;	
+	}
+	printf("Words = %d \n", words);	
+	write(sockfd, &words, sizeof(int));
+     	rewind(f);
+	while(ch != EOF)
+	{	
+		fscanf(f , "%d" , &temp2[k]);
+		//printf("provera %d\n",temp2[k]);		
+		ch= fgetc(f);		
+		k++;	
+	}
+	write(sockfd,temp2,sizeof(int)*words);
+	printf("The file was sent successfully to server\n");
+
+//*********************************************	RECEIVING IMAGE FROM SERVER*************************************************
+	cout<<"receving image from server\n"<<endl;
+	FILE *fs;
+        int h = 0, num;
+               
+	read(sockfd, &num, sizeof(int));
+	fs = fopen("final_image.txt","w");
+
+	int pom[num],pom2[num];
+	char *buff = (char *)num;
+	size_t rem = sizeof(int)*num;
+
+	while(rem){
+		ssize_t recvd = read(sockfd,buff,rem);
+		rem -= recvd;
+		buff += recvd;
+	}
+	
+	while(h != num)
+       	{
+	   	fprintf(fs, "%d ", pom[h]);
+		h++;
+		if((h%120) == 0){
+			fprintf(fs,"\n");
 		}
 	}
-	//printf("words %ld \n", words);
-	int sz = ftell(f);
-	cout<<"sz: "<<sz<<endl;
-	cout<<"words: "<<words<<endl;
-	write (sockfd, &words, sizeof(int));
-	rewind(f);
-	
-	while(ch != EOF)
-	{
-		fscanf(f, "%s", buffer);
-		cout<<buffer<<endl;
-		write(sockfd, &buffer, 1024);
-		//cout<<buffer<<endl;
-		ch=fgetc(f);
-	}
-	cout<<"File send succesfully\n"<<endl;
-	
+	printf("The new file created is final_image.txt\n");
+
+
+
+
 	close(sockfd);
 	return 0;
-        
 }
+
+
