@@ -149,12 +149,18 @@ int main(int argc, char *argv[])
 	serv_addr.sin_port = htons(portno);
 	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
 		error("ERROR connecting");
-//*************************************************CREATIN IMAGE.TXT*************************************************
+//*************************************************CREATING IMAGE.TXT*************************************************
 	cout << "Izaberite sliku za obradu:\n 1. lenna.png \n 2. stelvio1.jpeg\n 3. stelvio2.jpeg\n 4. stelvio3.jpeg\n 5. stelvio5.jpeg\n "<< endl;
 	cin >> selectImage;
+	chooseImage(selectImage);
+
+//**************************************************SELECTING KERNEL AND SENDING*******************************************
+	cout<<"Izaberite tip obrade slike:\n 1. Identity Operator \n2. Edge detection \n3. Sharpening \n"<<endl;
+	cin >> selectKernel;
+
 	int kernel1 [9], kernel2[9], kernel3[9];
 	
-	switch(selectImage){
+	switch(selectKernel){
 
 	case 1:
 		//kernel1  = {0, 0, 0, 0, 1, 0, 0, 0, 0};
@@ -204,13 +210,6 @@ int main(int argc, char *argv[])
 
 	}
 
-	chooseImage(selectImage);
-
-//**************************************************SELECTING KERNEL AND SENDING*******************************************
-
-	cout<<"Izaberite tip obrade slike:\n 1. Identity Operator \n2. Edge detection \n3. Sharpening \n"<<endl;
-	cin >> selectKernel;
-	
 
 //**************************************************SENDING IMAGE TO SERVER*************************************************
 	cout<<"sending image to server"<<endl;
@@ -234,19 +233,35 @@ int main(int argc, char *argv[])
 		ch= fgetc(f);		
 		k++;	
 	}
+
+	
 	write(sockfd,temp2,sizeof(int)*words);
+	if(fclose(f) == EOF)
+	{
+		printf("cannot close final_image.txt\n");
+	}
 	printf("The file was sent successfully to server\n");
+//************************************************ Sending lines and columns ********************************************
+	cout<<"lines and columns sent to server"<<endl;
+	int lines=120,columns=120;
+	write(sockfd, &lines, sizeof(int));
+	write(sockfd, &columns, sizeof(int));
+
 
 //*********************************************	RECEIVING IMAGE FROM SERVER*************************************************
+
 	cout<<"receving image from server\n"<<endl;
 	FILE *fs;
         int h = 0, num;
-               
 	read(sockfd, &num, sizeof(int));
 	fs = fopen("final_image.txt","w");
-
+	if (fs==NULL)
+	{
+		printf("cannot open final_image.txt\n");
+		return -1;
+	}
 	int pom[num],pom2[num];
-	char *buff = (char *)num;
+	char *buff = (char *)pom;
 	size_t rem = sizeof(int)*num;
 
 	while(rem){
@@ -254,18 +269,20 @@ int main(int argc, char *argv[])
 		rem -= recvd;
 		buff += recvd;
 	}
-	
 	while(h != num)
        	{
 	   	fprintf(fs, "%d ", pom[h]);
 		h++;
-		if((h%120) == 0){
+		if((h%119) == 0){
 			fprintf(fs,"\n");
 		}
 	}
 	printf("The new file created is final_image.txt\n");
 
-
+	if(fclose(fs) == EOF)
+	{
+		printf("cannot close final_image.txt\n");
+	}
 
 
 	close(sockfd);
