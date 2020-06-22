@@ -18,6 +18,7 @@
 #define IFS_SEND 16
 #define KERNEL_SEND 36
 #define MMAP
+
 using namespace std;
 
 void error(const char *msg)
@@ -46,6 +47,7 @@ int main(int argc, char *argv[])
 	serv_addr.sin_port = htons(portno);
 	if (bind(sockfd, (struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
 		error("ERROR on binding");
+	cout<< "Waiting for client ..."<<endl;
 	listen(sockfd,1);
 	clilen = sizeof(cli_addr);
 	newsockfd = accept(sockfd,(struct sockaddr *) &cli_addr, &clilen);
@@ -57,11 +59,9 @@ int main(int argc, char *argv[])
 	int *final_image;
 	int fk, fb, fc, fr;
 	int *k, *b, *c, *r;
-         
-	cout<< "Waiting for client ..."<<endl;
 
 //**********************************READING KERNEL AND SENDING TO BRAM_KERNEL***********************************************
-	read(newsockfd, &kernel, sizeof(int));         
+	read(newsockfd, &kernel, sizeof(int)*9);
 	cout<<"Read kernel"<<endl;
 	fk = open("/dev/bram_kernel", O_RDWR|O_NDELAY);
 	if (fk < 0)
@@ -208,6 +208,7 @@ int main(int argc, char *argv[])
 		}
 		fprintf(fm,"\n");
 	}
+	fprintf(fm,"\n");
 	printf("final_image written\n");
 
 	if(fclose(fm) == EOF)
@@ -221,23 +222,27 @@ int main(int argc, char *argv[])
 	FILE *f;
 	int num = 0, x=0;
 	int pom[120*120], pom2[120*120];
-	char h;
+	int  h;
 	f=fopen("final_image.txt","r");
-	while((h=fgetc(f))!=EOF)			
-	{	
-		fscanf(f, "%d", pom);
-		if(isspace(h) || h=='\n')
-		num++;	
+	if(f==NULL){
+		cout<<"cannot open final_image.txt"<<endl;
+		return -1;
 	}
-	printf("num = %d \n", num);	
+	cout<<"provera 1"<<endl;
+	while(h!=EOF)
+	{
+		fscanf(f, "%d", pom);
+		num++;
+		h=fgetc(f);	
+	}
 	write(newsockfd, &num, sizeof(int));
-
      	rewind(f);
-	while(h != EOF)
-	{	
-		fscanf(f , "%d" , &pom2[x]);		
-		h= fgetc(f);		
-		x++;	
+	while(x != num)
+	{
+		fscanf(f , "%d" , &pom2[x]);
+		//printf("pom[%d] = %d\n", x, pom2[x]);
+		//h= fgetc(f);
+		x++;
 	}
 	write(newsockfd,pom2,sizeof(int)*num);
 	printf("The file was sent successfully\n");
