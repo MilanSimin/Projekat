@@ -10,8 +10,6 @@
 #include <ctype.h>
 #include <iostream>
 
-//#include "image.h"
-
 #define MAX_BRAM_SIZE 57600
 #define MAX_IFS_SIZE 16384
 #define MAX_KERNEL_SIZE 4096
@@ -90,11 +88,9 @@ int main(int argc, char *argv[])
 	FILE *fp;
         int ch = 0, words;
 	int image[MAX_BRAM_SIZE];
-        fp = fopen("image.txt","w");            
-        //fprintf(fp, "int image [] = { ");
+        fp = fopen("image.txt","w");
 	read(newsockfd, &words, sizeof(int));
 
-	//int image[words];
 	char *buff = (char *)image;
 	size_t rem = sizeof(int)*words;
 
@@ -103,7 +99,7 @@ int main(int argc, char *argv[])
 		rem -= recvd;
 		buff += recvd;
 	}
-	
+
 	while(ch != words)
        	{
 	   	fprintf(fp, "%d, ", image[ch]);
@@ -112,7 +108,6 @@ int main(int argc, char *argv[])
 			fprintf(fp,"\n");
 		}
 	}
-	//fprintf(fp, " };");
 	printf("The new file created is image.txt\n");
 
 	fr = open("/dev/bram_image", O_RDWR|O_NDELAY);
@@ -141,6 +136,8 @@ int main(int argc, char *argv[])
 	read(newsockfd, &lines, sizeof(int));
 	read(newsockfd, &columns, sizeof(int));
 	cout<<"lines and columns read"<<endl;
+	cout<<"lines is "<<lines<<endl;
+	cout<<"columns is "<<columns<<endl;
 	int ifs_reg[4]={columns,lines,start,0};
 
 	fc = open("/dev/image_conv", O_RDWR|O_NDELAY);
@@ -199,9 +196,9 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 	printf("final_image opened\n");
-	for(i = 0; i<118; i++)//columns-2
+	for(i = 0; i<lines-1; i++)//lines-1
 	{
-		for(j=0; j<119; j++)//lines-2 ili obrnuto 
+		for(j=0; j<columns-1; j++)//columns-1 
 		{
 			fprintf(fm,"%d ",final_image[j+i*118]);
 			fflush(fm);
