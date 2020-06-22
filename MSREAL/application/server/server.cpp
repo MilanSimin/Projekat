@@ -228,7 +228,6 @@ int main(int argc, char *argv[])
 		cout<<"cannot open final_image.txt"<<endl;
 		return -1;
 	}
-	cout<<"provera 1"<<endl;
 	while(h!=EOF)
 	{
 		fscanf(f, "%d", pom);
@@ -240,8 +239,6 @@ int main(int argc, char *argv[])
 	while(x != num)
 	{
 		fscanf(f , "%d" , &pom2[x]);
-		//printf("pom[%d] = %d\n", x, pom2[x]);
-		//h= fgetc(f);
 		x++;
 	}
 	write(newsockfd,pom2,sizeof(int)*num);

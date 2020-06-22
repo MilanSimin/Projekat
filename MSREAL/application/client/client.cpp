@@ -116,7 +116,46 @@ void chooseImage (int select){
 }
 //***************************************************************************
 
+int getLines()
+{
+	FILE* fl;
+	int lines = 0;
+	int columns = 0;
+	char i;
+	fl = fopen("image.txt", "r");
 
+	
+	while((i=fgetc(fl))!=EOF)
+	{
+		if (i == '\n')
+		{
+			lines++;
+		}
+	}
+	fclose(fl);
+	return lines;
+}
+int getColumns()
+{
+	FILE* fl;
+	int lines = 0;
+	int columns = 0;
+	char i;
+	fl = fopen("image.txt", "r");
+
+	while((i=fgetc(fl))!='\n')
+	{
+		if (i == ' ')
+		{
+			columns++;
+		}
+	}
+	
+	fclose(fl);
+	return columns;
+}
+
+//***********************************************************************************************************
 
 int main(int argc, char *argv[])
 {
@@ -163,7 +202,6 @@ int main(int argc, char *argv[])
 	switch(selectKernel){
 
 	case 1:
-		//kernel1  = {0, 0, 0, 0, 1, 0, 0, 0, 0};
 		kernel1[0] = 0;
 		kernel1[1] = 0;
 		kernel1[2] = 0;
@@ -190,7 +228,6 @@ int main(int argc, char *argv[])
 		break;
 
 	case 3:
-		// kernel3={0, -1, 0, -1, 5, -1, 0, -1, 0};
 		kernel3[0] = 0;
 		kernel3[1] = -1;
 		kernel3[2] = 0;
@@ -228,8 +265,7 @@ int main(int argc, char *argv[])
      	rewind(f);
 	while(ch != EOF)
 	{	
-		fscanf(f , "%d" , &temp2[k]);
-		//printf("provera %d\n",temp2[k]);		
+		fscanf(f , "%d" , &temp2[k]);		
 		ch= fgetc(f);		
 		k++;	
 	}
@@ -243,8 +279,12 @@ int main(int argc, char *argv[])
 	printf("The file was sent successfully to server\n");
 //************************************************ Sending lines and columns ********************************************
 	cout<<"lines and columns sent to server"<<endl;
-	int lines=120,columns=120;
+	int lines,columns;
+	lines = getLines();
+	cout<<"lines is "<<lines<<endl;
 	write(sockfd, &lines, sizeof(int));
+	columns = getColumns();
+	cout<<"columns is "<<columns<<endl;	
 	write(sockfd, &columns, sizeof(int));
 
 
@@ -252,7 +292,7 @@ int main(int argc, char *argv[])
 
 	cout<<"receving image from server\n"<<endl;
 	FILE *fs;
-        int h = 0, num;
+        int h = 0, num = 0;
 	read(sockfd, &num, sizeof(int));
 	fs = fopen("final_image.txt","w");
 	if (fs==NULL)
@@ -260,7 +300,7 @@ int main(int argc, char *argv[])
 		printf("cannot open final_image.txt\n");
 		return -1;
 	}
-	int pom[num],pom2[num];
+	int pom[num];
 	char *buff = (char *)pom;
 	size_t rem = sizeof(int)*num;
 
@@ -273,7 +313,7 @@ int main(int argc, char *argv[])
        	{
 	   	fprintf(fs, "%d ", pom[h]);
 		h++;
-		if((h%119) == 0){
+		if((h%lines) == 0){
 			fprintf(fs,"\n");
 		}
 	}
