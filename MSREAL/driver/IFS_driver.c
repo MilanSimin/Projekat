@@ -21,7 +21,6 @@
 
 
 #define BUFF_SIZE 30
-#define MAX_PKT_LEN 256*256*4
 #define DRIVER_NAME "IFS_driver"
 #define DEVICE_NAME "IFS"
 
@@ -336,9 +335,9 @@ int IFS_close (struct inode *pinode, struct file *pfile){
 
 ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *offset){
 
-	int ret, i=0, pos=0;
+	int ret, pos=0;
 	char buff[BUFF_SIZE];
-	int len,temp,value;
+	int len, value;
 	int minor = MINOR(pfile->f_inode->i_rdev);
 	if (endRead == 1)
 	{
@@ -370,7 +369,7 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 		case 1://bram_kernel
 			pos = position + k*4;
 			value  = ioread32(bp2->base_addr + pos);
-			temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+			len = scnprintf(buff, BUFF_SIZE, "%d\n", value);
 			*offset += len;
 			ret = copy_to_user(buf, buff, len);
 			if(ret){
@@ -404,9 +403,9 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 
 		case 3://image_conv
 
-			status = ioread32(ip->base_addr+k*4);
+			value = ioread32(ip->base_addr+k*4);
 			//printk(KERN_INFO"Ready is: %d\n", status);
-			len = scnprintf(buff, BUFF_SIZE, "%d\n", status);
+			len = scnprintf(buff, BUFF_SIZE, "%d\n", value);
 			*offset += len;
 			ret=copy_to_user(buf,buff,len);
 			if(ret)
@@ -464,7 +463,7 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 			}
 
 			if(ret != -EINVAL) //checking for parsing error
-				{
+			{
 				if (xpos > 120)
 				{
 					printk(KERN_WARNING "BRAM_IMAGE: X_axis position exceeded, maximum is 120 and minimum 0 \n");
@@ -476,7 +475,7 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				else
 				{
 					position = (120*ypos+xpos)*4;
-					for(i=0; i<=number; i++)
+					for(i=0; i<number; i++)
 					{
 						pos = position +i*4;
 						printk(KERN_INFO "position is: %d\n",pos);
@@ -484,6 +483,7 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 						iowrite32(rgb,bp1->base_addr+pos);
 					}
 				}
+				number = 0;
 			}
 			else
 			{
@@ -519,13 +519,14 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 				else
 				{
 					position = (3*ypos+xpos)*4;
-					for(i=0; i<=number; i++)
+					for(i=0; i<number; i++)
 					{
 						pos = position +i*4;
 						printk(KERN_INFO "position is: %d\n",pos);
 						printk(KERN_INFO "value is: %d\n",rgb);
 						iowrite32(rgb,bp2->base_addr+pos);
 					}
+					number = 0;
 					
 					
 				}
@@ -553,7 +554,7 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 					printk(KERN_WARNING "IMAGE_CONV: maximum for columns is 120 and minimum 0 \n");
 				} else if ( lines > 120 ){
 					printk(KERN_WARNING "IMAGE_CONV: maximum for lines is 120 and minimum 0 \n");
-				} else if (start !=0 || start !=1) {
+				} else if (start !=0 && start !=1) {
 					printk(KERN_WARNING "IMAGE_CONV: start must be 1 or 0 \n");
 				} else {
 				
