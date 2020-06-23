@@ -338,8 +338,7 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 
 	int ret, i=0, pos=0;
 	char buff[BUFF_SIZE];
-	int len,temp;
-	int value, status, cmd, lines, columns, after_conv;
+	int len,temp,value;
 	int minor = MINOR(pfile->f_inode->i_rdev);
 	if (endRead == 1)
 	{
@@ -351,43 +350,55 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 
 		case 0://bram_image
 			
-			pos = position + i*4;
+			pos = position + k*4;
 			value  = ioread32(bp1->base_addr + pos);
-			printk (KERN_INFO "value is: %d\n",value);
-			printk (KERN_INFO "position is: %d\n",pos);
-			temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+			len = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+			*offset += len;
 			ret = copy_to_user(buf, buff, len);
 			if(ret){
 				return -EFAULT;
 			}
-			
+			k++;
+			if(k == 20)
+			{
+				endRead=1;
+				k = 0;
+			}
 			break;
 
 
 		case 1://bram_kernel
-			pos = position + i*4;
+			pos = position + k*4;
 			value  = ioread32(bp2->base_addr + pos);
-			printk (KERN_INFO "value is: %d\n",value);
-			printk (KERN_INFO "position is: %d\n",pos);
 			temp = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+			*offset += len;
 			ret = copy_to_user(buf, buff, len);
 			if(ret){
 				return -EFAULT;
 			}
-			
+			k++;
+			if(k == 9)
+			{
+				endRead=1;
+				k = 0;
+			}
 			break;
 
 		case 2://bram_after_conv
-			after_conv = ioread32(bp3->base_addr+i*4);
-			printk(KERN_INFO"after_conv is: %d \n", after_conv);
-			printk(KERN_INFO "position is: %d\n",i*4);
-			temp = scnprintf(buff, BUFF_SIZE, "%d\n", after_conv);
+			value = ioread32(bp3->base_addr+k*4);
+			len = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+			*offset += len;
 			ret=copy_to_user(buf,buff,len);
 			if(ret)
 			{
 				return -EFAULT;
 			}
-
+			k++;
+			if(k == 20)
+			{
+				endRead=1;
+				k = 0;
+			}
 			
 			break;
 
@@ -427,6 +438,7 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 	int ret = 0, i = 0, pos = 0;
 	unsigned int xpos=0, ypos=0;
 	unsigned int rgb=0;
+	int columns, lines, start;
 	ret = copy_from_user(buff, buf, length);
 
 	if(ret){
@@ -435,29 +447,31 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 	}
 	buff[length] = '\0';
 
-	if(buff[0] == '(')
-	{
-
-		sscanf(buff,"(%d,%d);%d", &xpos, &ypos, &rgb); 
-
-	} else {
-
-		sscanf(buff, "%d(%d,%d);%d", &number, &xpos, &ypos, &rgb);
-
-	}
+	
 
 	switch(minor){
 
 		case 0://bram_image
+			if(buff[0] == '(')
+			{
+
+				sscanf(buff,"(%d,%d);%d", &xpos, &ypos, &rgb); 
+
+			} else {
+
+				sscanf(buff, "%d(%d,%d);%d", &number, &xpos, &ypos, &rgb);
+
+			}
+
 			if(ret != -EINVAL) //checking for parsing error
 				{
 				if (xpos > 120)
 				{
-					printk(KERN_WARNING "IFS_write: X_axis position exceeded, maximum is 255 and minimum 0 \n");
+					printk(KERN_WARNING "BRAM_IMAGE: X_axis position exceeded, maximum is 120 and minimum 0 \n");
 				}
 				else if (ypos > 120)
 				{
-					printk(KERN_WARNING "IFS_write: Y_axis position exceeded, maximum is 255 and minimum 0 \n");
+					printk(KERN_WARNING "BRAM_IMAGE: Y_axis position exceeded, maximum is 120 and minimum 0 \n");
 				}
 				else
 				{
@@ -480,23 +494,40 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 			break;
 
 		case 1://bram_kernel
+			if(buff[0] == '(')
+			{
+
+				sscanf(buff,"(%d,%d);%d", &xpos, &ypos, &rgb); 
+
+			} else {
+
+				sscanf(buff, "%d(%d,%d);%d", &number, &xpos, &ypos, &rgb);
+
+			}
+
+
 			if(ret != -EINVAL) //checking for parsing error
 			{
 				if (xpos > 3)
 				{
-					printk(KERN_WARNING "IFS_write: X_axis position exceeded, maximum is 3 and minimum 0 \n");
+					printk(KERN_WARNING "BRAM_KERNEL: X_axis position exceeded, maximum is 3 and minimum 0 \n");
 				}
 				else if (ypos > 3)
 				{
-					printk(KERN_WARNING "IFS_write: Y_axis position exceeded, maximum is 3 and minimum 0 \n");
+					printk(KERN_WARNING "BRAM_KERNEL: Y_axis position exceeded, maximum is 3 and minimum 0 \n");
 				}
 				else
 				{
-
 					position = (3*ypos+xpos)*4;
-					printk(KERN_INFO"position is: %d\n",position);
-					printk(KERN_INFO "value is :  %d\n",rgb);
-					iowrite32(rgb,bp2->base_addr+position);
+					for(i=0; i<=number; i++)
+					{
+						pos = position +i*4;
+						printk(KERN_INFO "position is: %d\n",pos);
+						printk(KERN_INFO "value is: %d\n",rgb);
+						iowrite32(rgb,bp2->base_addr+pos);
+					}
+					
+					
 				}
 			}
 			else
@@ -515,11 +546,22 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 
 
 		case 3://image_conv
+
+			sscanf(buff,"%d,%d,%d", &columns, &lines, &start);
 			if (ret != -EINVAL){
-				iowrite32(xpos, ip->base_addr); //columns
-				iowrite32(ypos, ip->base_addr +4); //lines
-				iowrite32(number, ip->base_addr +8); //cmd
-				iowrite32(rgb, ip->base_addr +12); //status
+				if(columns > 120){
+					printk(KERN_WARNING "IMAGE_CONV: maximum for columns is 120 and minimum 0 \n");
+				} else if ( lines > 120 ){
+					printk(KERN_WARNING "IMAGE_CONV: maximum for lines is 120 and minimum 0 \n");
+				} else if (start !=0 || start !=1) {
+					printk(KERN_WARNING "IMAGE_CONV: start must be 1 or 0 \n");
+				} else {
+				
+					iowrite32(columns, ip->base_addr); //columns
+					iowrite32(lines, ip->base_addr +4); //lines
+					iowrite32(start, ip->base_addr +8); //cmd
+
+				}
 
 			}
 		break;
