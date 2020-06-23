@@ -313,7 +313,7 @@ int main(int argc, char *argv[])
        	{
 	   	fprintf(fs, "%d ", pom[h]);
 		h++;
-		if((h%lines) == 0){
+		if((h%(lines-1)) == 0){
 			fprintf(fs,"\n");
 		}
 	}
@@ -323,9 +323,22 @@ int main(int argc, char *argv[])
 	{
 		printf("cannot close final_image.txt\n");
 	}
-
-
+	
 	close(sockfd);
+	Mat picture((columns-1),(lines-1),CV_8U);
+
+	for(int x=0; x<columns-1;x++){
+		for(int y=0; y<lines-1; y++){
+			picture.at<uchar>(x,y) = pom[y+x*(columns-1)];
+		}
+	}
+	
+
+
+	namedWindow("Final image", WINDOW_AUTOSIZE );
+	imshow("Final image", picture );
+	waitKey(0);
+	
 	return 0;
 }
 

@@ -16,15 +16,11 @@ with open("final_image.txt", "r") as text_file:
 
 	for x in iksevi:
 		brojevi = x.split(' ')
-		#counter = 0
 		y = 0
 		for broj in brojevi:
-			#if (counter % 3 == 0):
-			#counter = 0
 			if (broj != '\n' and broj != ''):						
 				imgArray[xerino][y] = int(broj)
 				y+=1
-			#counter+=1
 		xerino+=1
 
 	img = Image.fromarray(imgArray)
