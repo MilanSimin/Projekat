@@ -104,7 +104,6 @@ static struct platform_driver IFS_driver = {
 static int IFS_probe (struct platform_device *pdev) 
 {
 
-	//printk(KERN_INFO "Counter is: %d\n", counter);
 	struct resource *r_mem;
 	int rc = 0;
 	r_mem= platform_get_resource(pdev, IORESOURCE_MEM, 0);
@@ -267,7 +266,6 @@ static int IFS_probe (struct platform_device *pdev)
 static int IFS_remove(struct platform_device *pdev)
 {
 
-	printk(KERN_INFO "Counter is: %d\n", counter);
 
 	switch(counter){
 
@@ -404,7 +402,6 @@ ssize_t IFS_read (struct file *pfile, char __user *buf, size_t length, loff_t *o
 		case 3://image_conv
 
 			value = ioread32(ip->base_addr+k*4);
-			//printk(KERN_INFO"Ready is: %d\n", status);
 			len = scnprintf(buff, BUFF_SIZE, "%d\n", value);
 			*offset += len;
 			ret=copy_to_user(buf,buff,len);
@@ -478,8 +475,6 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 					for(i=0; i<number; i++)
 					{
 						pos = position +i*4;
-						printk(KERN_INFO "position is: %d\n",pos);
-						printk(KERN_INFO "value is: %d\n",rgb);
 						iowrite32(rgb,bp1->base_addr+pos);
 					}
 				}
@@ -522,8 +517,6 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 					for(i=0; i<number; i++)
 					{
 						pos = position +i*4;
-						printk(KERN_INFO "position is: %d\n",pos);
-						printk(KERN_INFO "value is: %d\n",rgb);
 						iowrite32(rgb,bp2->base_addr+pos);
 					}
 					number = 0;
@@ -551,11 +544,17 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 			sscanf(buff,"%d,%d,%d", &columns, &lines, &start);
 			if (ret != -EINVAL){
 				if(columns > 120){
+
 					printk(KERN_WARNING "IMAGE_CONV: maximum for columns is 120 and minimum 0 \n");
+
 				} else if ( lines > 120 ){
+
 					printk(KERN_WARNING "IMAGE_CONV: maximum for lines is 120 and minimum 0 \n");
+
 				} else if (start !=0 && start !=1) {
+
 					printk(KERN_WARNING "IMAGE_CONV: start must be 1 or 0 \n");
+
 				} else {
 				
 					iowrite32(columns, ip->base_addr); //columns
@@ -594,7 +593,7 @@ int IFS_mmap(struct file *f, struct vm_area_struct *vma_s){
 				printk(KERN_ERR "BRAM_IMAGE: Trying to mmap more space than it's allocated, mmap failed\n");
 				return -EIO;
 			}
-			printk(KERN_INFO "psize is %lu\n", psize);
+			//printk(KERN_INFO "psize is %lu\n", psize);
 			ret = vm_iomap_memory(vma_s, bp1->mem_start, vsize);
 			if(ret)
 			{
