@@ -45,7 +45,7 @@ void chooseImage (int select){
 
 		namedWindow("Original image", WINDOW_AUTOSIZE );
 		imshow("Original image", newImage );
-		waitKey(0);
+		waitKey(3000);
 
 		break;
 	case 2:
@@ -54,7 +54,7 @@ void chooseImage (int select){
 
 		namedWindow("Original image", WINDOW_AUTOSIZE );
 		imshow("Original image", newImage );
-		waitKey(0);
+		waitKey(3000);
 
 		break;
 
@@ -188,6 +188,23 @@ int main(int argc, char *argv[])
 	serv_addr.sin_port = htons(portno);
 	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
 		error("ERROR connecting");
+
+	char ans;
+	cout<<"Ako zelite da prekinete komunikaciju sa serverom ukucajte 'Q' "<<endl;
+	cout<<"Ako zelite da pokrenete aplikaciju ukucajte 'Y' "<<endl;
+
+while(1)
+{
+	cout<<"start"<<endl;
+	cin >> ans;
+	write (sockfd, &ans, sizeof(char));
+	if (ans == 'q') 
+	{
+		return 0;
+
+	} else if (ans == 'y'){
+
+
 //*************************************************CREATING IMAGE.TXT*************************************************
 	cout << "Izaberite sliku za obradu:\n 1. lenna.png \n 2. stelvio1.jpeg\n 3. stelvio2.jpeg\n 4. stelvio3.jpeg\n 5. stelvio5.jpeg\n "<< endl;
 	cin >> selectImage;
@@ -211,7 +228,7 @@ int main(int argc, char *argv[])
 		kernel1[6] = 0;
 		kernel1[7] = 0;
 		kernel1[8] = 0;
-		write(sockfd, kernel1, sizeof(int)*9);
+		write(sockfd, kernel1, sizeof(int)*9);	
 		break;
 
 	case 2:
@@ -260,7 +277,7 @@ int main(int argc, char *argv[])
 		if(isspace(c) || c=='\n')
 		words++;	
 	}
-	printf("Words = %d \n", words);	
+	//printf("Words = %d \n", words);	
 	write(sockfd, &words, sizeof(int));
      	rewind(f);
 	while(ch != EOF)
@@ -270,7 +287,6 @@ int main(int argc, char *argv[])
 		k++;	
 	}
 
-	
 	write(sockfd,temp2,sizeof(int)*words);
 	if(fclose(f) == EOF)
 	{
@@ -301,6 +317,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 	int pom[num];
+	bzero(pom,num);
 	char *buff = (char *)pom;
 	size_t rem = sizeof(int)*num;
 
@@ -318,7 +335,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	printf("The new file created is final_image.txt\n");
-
+	
 	if(fclose(fs) == EOF)
 	{
 		printf("cannot close final_image.txt\n");
@@ -337,9 +354,11 @@ int main(int argc, char *argv[])
 
 	namedWindow("Final image", WINDOW_AUTOSIZE );
 	imshow("Final image", picture );
-	waitKey(0);
-	
+	waitKey(3000);
+	}	
+}
 	return 0;
+	
 }
 
 

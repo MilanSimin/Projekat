@@ -453,14 +453,28 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 
 				sscanf(buff,"(%d,%d);%d", &xpos, &ypos, &rgb); 
 
+				if (xpos > 120)
+				{
+					printk(KERN_WARNING "BRAM_IMAGE: X_axis position exceeded, maximum is 120 and minimum 0 \n");
+				}
+				else if (ypos > 120)
+				{
+					printk(KERN_WARNING "BRAM_IMAGE: Y_axis position exceeded, maximum is 120 and minimum 0 \n");
+				}
+				else
+				{
+					position = (120*ypos+xpos)*4;
+					pos = position +i*4;
+					iowrite32(rgb,bp1->base_addr+pos);
+					
+				}
+				
+
 			} else {
 
 				sscanf(buff, "%d(%d,%d);%d", &number, &xpos, &ypos, &rgb);
+				
 
-			}
-
-			if(ret != -EINVAL) //checking for parsing error
-			{
 				if (xpos > 120)
 				{
 					printk(KERN_WARNING "BRAM_IMAGE: X_axis position exceeded, maximum is 120 and minimum 0 \n");
@@ -479,12 +493,12 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 					}
 				}
 				number = 0;
+				
+
 			}
-			else
-			{
-				printk(KERN_WARNING "IFS_write: Wrong write format\n");
-				// return -EINVAL; //parsing error
-			}
+
+			
+			
 
 			break;
 
@@ -494,15 +508,29 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 
 				sscanf(buff,"(%d,%d);%d", &xpos, &ypos, &rgb); 
 
+				if (xpos > 3)
+				{
+					printk(KERN_WARNING "BRAM_KERNEL: X_axis position exceeded, maximum is 3 and minimum 0 \n");
+				}
+				else if (ypos > 3)
+				{
+					printk(KERN_WARNING "BRAM_KERNEL: Y_axis position exceeded, maximum is 3 and minimum 0 \n");
+				}
+				else
+				{
+					
+					position = (3*ypos+xpos)*4;					
+					pos = position +i*4;
+					iowrite32(rgb,bp2->base_addr+pos);
+					
+					
+					
+				}
+
 			} else {
 
 				sscanf(buff, "%d(%d,%d);%d", &number, &xpos, &ypos, &rgb);
 
-			}
-
-
-			if(ret != -EINVAL) //checking for parsing error
-			{
 				if (xpos > 3)
 				{
 					printk(KERN_WARNING "BRAM_KERNEL: X_axis position exceeded, maximum is 3 and minimum 0 \n");
@@ -523,12 +551,10 @@ ssize_t IFS_write (struct file *pfile, const char __user *buf, size_t length, lo
 					
 					
 				}
+
 			}
-			else
-			{
-				printk(KERN_WARNING "IFS_write: Wrong write format\n");
-				//return -EINVAL; //parsing error
-			}
+
+		
 		break;
 
 
