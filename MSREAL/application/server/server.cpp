@@ -48,9 +48,13 @@ int main(int argc, char *argv[])
 	cout<< "Waiting for client ..."<<endl;
 	listen(sockfd,1);
 	clilen = sizeof(cli_addr);
+	//int flags = fcntl(sockfd, F_GETFL, 0);	
+	//fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+	
 	newsockfd = accept(sockfd,(struct sockaddr *) &cli_addr, &clilen);
 	if (newsockfd < 0) 
 		error("ERROR on accept");
+	cout<<"Client connected "<<endl;
 
 	int lines,columns,start=1;
 	int kernel[9], i =0, j=0;
@@ -60,7 +64,7 @@ int main(int argc, char *argv[])
 
 //**********************************READING KERNEL AND SENDING TO BRAM_KERNEL***********************************************
 	read(newsockfd, &kernel, sizeof(int)*9);
-	cout<<"Read kernel"<<endl;
+	cout<<"Reading kernel"<<endl;
 	fk = open("/dev/bram_kernel", O_RDWR|O_NDELAY);
 	if (fk < 0)
 	{
