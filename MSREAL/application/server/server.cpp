@@ -25,6 +25,18 @@ void error(const char *msg)
     exit(1);
 }
 
+string sock_read(int sockfd){
+	const int MAX =256;
+	char buff[MAX];
+	bzero(buff, MAX);
+
+	read(sockfd, buff, sizeof(buff));
+	string message(buff);
+
+	return message;
+
+}
+
 int main(int argc, char *argv[])
 {
 //**********************************client/server creating socket and connecting***************************************************
@@ -57,7 +69,15 @@ int main(int argc, char *argv[])
 	int *final_image;
 	int fk, fb, fc, fr;
 	int *k, *b, *c, *r;
+	string command;
 
+while(command !="q\n") {
+	command = sock_read(newsockfd);
+
+	//if(command=="q\n"){
+	//	return 0;
+	//} else if (command == "y" ){
+	cout<<"command is: "<<command<<endl;
 //**********************************READING KERNEL AND SENDING TO BRAM_KERNEL***********************************************
 	read(newsockfd, &kernel, sizeof(int)*9);
 	cout<<"Read kernel"<<endl;
@@ -88,9 +108,10 @@ int main(int argc, char *argv[])
 	FILE *fp;
         int ch = 0, words;
 	int image[MAX_BRAM_SIZE];
+	bzero(image,MAX_BRAM_SIZE);
         fp = fopen("image.txt","w");
 	read(newsockfd, &words, sizeof(int));
-
+	cout<<"Reading image"<<endl;
 	char *buff = (char *)image;
 	size_t rem = sizeof(int)*words;
 
@@ -99,6 +120,9 @@ int main(int argc, char *argv[])
 		rem -= recvd;
 		buff += recvd;
 	}
+
+	cout<<"while loop"<<endl;
+
 
 	while(ch != words)
        	{
@@ -240,7 +264,35 @@ int main(int argc, char *argv[])
 	}
 	write(newsockfd,pom2,sizeof(int)*num);
 	printf("The file was sent successfully\n");
+	
+	ifs_reg[0]=0;
+	ifs_reg[1]=0;
+	ifs_reg[2]=0;
+	ifs_reg[3]=0;
 
+	fc = open("/dev/image_conv", O_RDWR|O_NDELAY);
+	if (c < 0)
+	{
+		printf("Cannot open /dev/image_conv for write\n");
+		return -1;
+	}
+	c=(int*)mmap(0, MAX_IFS_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fc, 0);
+	if (c == NULL ) {
+		printf ("\ncouldn't mmap\n");
+		return 0;
+	}
+	
+	memcpy(c, ifs_reg, IFS_SEND);
+	munmap(c, IFS_SEND);
+	printf("image_conv done\n");
+	close(fc);
+	if (fc < 0)
+	{
+		printf("Cannot close /dev/image_conv for write\n");
+		return -1;
+	}
+//	} 
+}
 
 	close(newsockfd);
 	close(sockfd);
