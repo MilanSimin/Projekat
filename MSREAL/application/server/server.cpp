@@ -37,51 +37,18 @@ string sock_read(int sockfd){
 
 }
 
-int main(int argc, char *argv[])
+//*****************************************************************************************************************************
+int lines,columns,start=1;
+int kernel[9], i =0, j=0;
+int *final_image;
+int fk, fb, fc, fr;
+int *k, *b, *c, *r;
+string command;
+
+
+void start(int newsockfd)
 {
-//**********************************client/server creating socket and connecting***************************************************
-	int sockfd, newsockfd, portno;
-	socklen_t clilen;
-	struct sockaddr_in serv_addr, cli_addr;
-	if (argc < 2) {
-		fprintf(stderr,"ERROR, no port provided\n");
-		exit(1);
-	}
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd < 0) 
-		error("ERROR opening socket");
-	bzero((char *) &serv_addr, sizeof(serv_addr));
-	portno = atoi(argv[1]);
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_addr.s_addr = INADDR_ANY;
-	serv_addr.sin_port = htons(portno);
-	if (bind(sockfd, (struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
-		error("ERROR on binding");
-	cout<< "Waiting for client ..."<<endl;
-	listen(sockfd,1);
-	clilen = sizeof(cli_addr);
-	//int flags = fcntl(sockfd, F_GETFL, 0);	
-	//fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
-	
-	newsockfd = accept(sockfd,(struct sockaddr *) &cli_addr, &clilen);
-	if (newsockfd < 0) 
-		error("ERROR on accept");
-	cout<<"Client connected "<<endl;
 
-	int lines,columns,start=1;
-	int kernel[9], i =0, j=0;
-	int *final_image;
-	int fk, fb, fc, fr;
-	int *k, *b, *c, *r;
-	string command;
-
-while(command !="q\n") {
-	command = sock_read(newsockfd);
-
-	//if(command=="q\n"){
-	//	return 0;
-	//} else if (command == "y" ){
-	cout<<"command is: "<<command<<endl;
 //**********************************READING KERNEL AND SENDING TO BRAM_KERNEL***********************************************
 	read(newsockfd, &kernel, sizeof(int)*9);
 	cout<<"Reading kernel"<<endl;
@@ -295,11 +262,54 @@ while(command !="q\n") {
 		printf("Cannot close /dev/image_conv for write\n");
 		return -1;
 	}
-//	} 
-}
 
 	close(newsockfd);
 	close(sockfd);
+
+
+}
+
+int main(int argc, char *argv[])
+{
+//**********************************client/server creating socket and connecting***************************************************
+	int sockfd, newsockfd, portno;
+	socklen_t clilen;
+	struct sockaddr_in serv_addr, cli_addr;
+	if (argc < 2) {
+		fprintf(stderr,"ERROR, no port provided\n");
+		exit(1);
+	}
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd < 0) 
+		error("ERROR opening socket");
+	bzero((char *) &serv_addr, sizeof(serv_addr));
+	portno = atoi(argv[1]);
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = INADDR_ANY;
+	serv_addr.sin_port = htons(portno);
+	if (bind(sockfd, (struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
+		error("ERROR on binding");
+	cout<< "Waiting for client ..."<<endl;
+	listen(sockfd,1);
+	clilen = sizeof(cli_addr);
+
+	newsockfd = accept(sockfd,(struct sockaddr *) &cli_addr, &clilen);
+	if (newsockfd < 0) 
+		error("ERROR on accept");
+	cout<<"Client connected "<<endl;
+
+	
+
+	do{
+		
+		command =sock_read(newsockfd);
+		cout<<"command is: "<<command<<endl;
+		start(newsockfd);
+
+	}while (command!="q\n" && command!="");
+
+
+
 	return 0; 
 }
 
