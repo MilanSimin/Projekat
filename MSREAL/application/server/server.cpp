@@ -37,17 +37,40 @@ string sock_read(int sockfd){
 
 }
 
-//*****************************************************************************************************************************
-int lines,columns,start=1;
-int kernel[9], i =0, j=0;
-int *final_image;
-int fk, fb, fc, fr;
-int *k, *b, *c, *r;
-string command;
-
-
-void start(int newsockfd)
+int main(int argc, char *argv[])
 {
+//**********************************client/server creating socket and connecting***************************************************
+	int sockfd, newsockfd, portno;
+	socklen_t clilen;
+	struct sockaddr_in serv_addr, cli_addr;
+	if (argc < 2) {
+		fprintf(stderr,"ERROR, no port provided\n");
+		exit(1);
+	}
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd < 0) 
+		error("ERROR opening socket");
+	bzero((char *) &serv_addr, sizeof(serv_addr));
+	portno = atoi(argv[1]);
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = INADDR_ANY;
+	serv_addr.sin_port = htons(portno);
+	if (bind(sockfd, (struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
+		error("ERROR on binding");
+	cout<< "Waiting for client ..."<<endl;
+	listen(sockfd,1);
+	clilen = sizeof(cli_addr);
+
+	newsockfd = accept(sockfd,(struct sockaddr *) &cli_addr, &clilen);
+	if (newsockfd < 0) 
+		error("ERROR on accept");
+	cout<<"Client connected "<<endl;
+
+	int lines,columns,start=1;
+	int kernel[9], i =0, j=0;
+	int *final_image;
+	int fk, fb, fc, fr;
+	int *k, *b, *c, *r;
 
 //**********************************READING KERNEL AND SENDING TO BRAM_KERNEL***********************************************
 	read(newsockfd, &kernel, sizeof(int)*9);
@@ -131,8 +154,8 @@ void start(int newsockfd)
 	read(newsockfd, &lines, sizeof(int));
 	read(newsockfd, &columns, sizeof(int));
 	cout<<"lines and columns read"<<endl;
-	cout<<"lines is "<<lines<<endl;
-	cout<<"columns is "<<columns<<endl;
+	//cout<<"lines is "<<lines<<endl;
+	//cout<<"columns is "<<columns<<endl;
 	int ifs_reg[4]={columns,lines,start,0};
 
 	fc = open("/dev/image_conv", O_RDWR|O_NDELAY);
@@ -236,78 +259,10 @@ void start(int newsockfd)
 	write(newsockfd,pom2,sizeof(int)*num);
 	printf("The file was sent successfully\n");
 	
-	ifs_reg[0]=0;
-	ifs_reg[1]=0;
-	ifs_reg[2]=0;
-	ifs_reg[3]=0;
-
-	fc = open("/dev/image_conv", O_RDWR|O_NDELAY);
-	if (c < 0)
-	{
-		printf("Cannot open /dev/image_conv for write\n");
-		return -1;
-	}
-	c=(int*)mmap(0, MAX_IFS_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fc, 0);
-	if (c == NULL ) {
-		printf ("\ncouldn't mmap\n");
-		return 0;
-	}
 	
-	memcpy(c, ifs_reg, IFS_SEND);
-	munmap(c, IFS_SEND);
-	printf("image_conv done\n");
-	close(fc);
-	if (fc < 0)
-	{
-		printf("Cannot close /dev/image_conv for write\n");
-		return -1;
-	}
 
 	close(newsockfd);
 	close(sockfd);
-
-
-}
-
-int main(int argc, char *argv[])
-{
-//**********************************client/server creating socket and connecting***************************************************
-	int sockfd, newsockfd, portno;
-	socklen_t clilen;
-	struct sockaddr_in serv_addr, cli_addr;
-	if (argc < 2) {
-		fprintf(stderr,"ERROR, no port provided\n");
-		exit(1);
-	}
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd < 0) 
-		error("ERROR opening socket");
-	bzero((char *) &serv_addr, sizeof(serv_addr));
-	portno = atoi(argv[1]);
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_addr.s_addr = INADDR_ANY;
-	serv_addr.sin_port = htons(portno);
-	if (bind(sockfd, (struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
-		error("ERROR on binding");
-	cout<< "Waiting for client ..."<<endl;
-	listen(sockfd,1);
-	clilen = sizeof(cli_addr);
-
-	newsockfd = accept(sockfd,(struct sockaddr *) &cli_addr, &clilen);
-	if (newsockfd < 0) 
-		error("ERROR on accept");
-	cout<<"Client connected "<<endl;
-
-	
-
-	do{
-		
-		command =sock_read(newsockfd);
-		cout<<"command is: "<<command<<endl;
-		start(newsockfd);
-
-	}while (command!="q\n" && command!="");
-
 
 
 	return 0; 

@@ -189,21 +189,6 @@ int main(int argc, char *argv[])
 	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
 		error("ERROR connecting");
 
-	char ans;
-	cout<<"Ako zelite da prekinete komunikaciju sa serverom ukucajte 'Q' "<<endl;
-	cout<<"Ako zelite da pokrenete aplikaciju ukucajte 'Y' "<<endl;
-
-while(1)
-{
-	cout<<"start"<<endl;
-	cin >> ans;
-	write (sockfd, &ans, sizeof(char));
-	if (ans == 'q') 
-	{
-		return 0;
-
-	} else if (ans == 'y'){
-
 
 //*************************************************CREATING IMAGE.TXT*************************************************
 	cout << "Izaberite sliku za obradu:\n 1. lenna.png \n 2. stelvio1.jpeg\n 3. stelvio2.jpeg\n 4. stelvio3.jpeg\n 5. stelvio5.jpeg\n "<< endl;
@@ -297,10 +282,10 @@ while(1)
 	cout<<"lines and columns sent to server"<<endl;
 	int lines,columns;
 	lines = getLines();
-	cout<<"lines is "<<lines<<endl;
+	//cout<<"lines is "<<lines<<endl;
 	write(sockfd, &lines, sizeof(int));
 	columns = getColumns();
-	cout<<"columns is "<<columns<<endl;	
+	//cout<<"columns is "<<columns<<endl;	
 	write(sockfd, &columns, sizeof(int));
 
 
@@ -360,5 +345,6 @@ while(1)
 	return 0;
 	
 }
+
 
 
