@@ -87,7 +87,7 @@ module conv_ip_tb_top;
   
   // generate clock
   always begin : clock_gen_block
-    #10 clock <= ~clock;
+    #5 clock <= ~clock;
   end
   
   initial begin : timeformat
