@@ -69,7 +69,7 @@ endtask : run_phase
 // handle reset
 task bram_a_monitor::handle_reset();
   // wait reset assertion
-  @(m_vif.reset_n iff m_vif.reset_n == 0);
+  @(m_vif.clock iff m_vif.reset_n == 0);
   `uvm_info(get_type_name(), "Reset asserted.", UVM_HIGH)
 endtask : handle_reset
 
