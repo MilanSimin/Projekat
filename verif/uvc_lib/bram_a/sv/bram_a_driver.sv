@@ -53,7 +53,7 @@ endtask : run_phase
 task bram_a_driver::process_item(bram_a_item item);
 
   // wait until reset is de-asserted
-  //wait (m_vif.reset_n == 1);
+  wait (m_vif.reset_n == 1);
   
   // drive signals
   @(posedge m_vif.clock iff m_vif.reset_n == 1);
