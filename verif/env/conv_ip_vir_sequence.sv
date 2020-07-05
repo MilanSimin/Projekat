@@ -48,6 +48,11 @@ task body();
 	 `uvm_fatal(get_type_name(), "Failed to randomize.")
   end
 	m_axi_lite_seq.start(p_sequencer.m_axi_lite_sequencer);
+  
+  if(!m_axi_lite_read_seq.randomize() with {addr == READY_REG_ADDR;}) begin //citanje ready registra
+	   `uvm_fatal(get_type_name(), "Failed to randomize.")
+  end
+        m_axi_lite_read_seq.start(p_sequencer.m_axi_lite_sequencer);
 
   if(!m_axi_lite_seq.randomize() with {addr == START_REG_ADDR; data == 'h1;}) begin //start
 	   `uvm_fatal(get_type_name(), "Failed to randomize.")
