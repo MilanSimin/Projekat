@@ -69,7 +69,7 @@ endtask : run_phase
 // handle reset
 task axi_lite_monitor::handle_reset();
   // wait reset assertion
-  @(m_vif.reset_n iff m_vif.reset_n == 0);
+  @(m_vif.clock iff m_vif.reset_n == 0);
   `uvm_info(get_type_name(), "Reset asserted.", UVM_HIGH)
 endtask : handle_reset
 
@@ -77,14 +77,14 @@ endtask : handle_reset
 task axi_lite_monitor::collect_item();  
   // wait until reset is de-asserted
   
-  @(negedge m_vif.clock iff m_vif.reset_n == 1);
+  @(posedge m_vif.clock iff m_vif.reset_n == 1);
   `uvm_info(get_type_name(), "Reset de-asserted. Starting to collect items...", UVM_LOW)
   
     // WRITE
    fork
     begin
      forever begin
-       @(negedge m_vif.clock iff m_vif.s_axi_awready === 1);
+       @(posedge m_vif.clock iff m_vif.s_axi_awready === 1);
         m_item.addr = m_vif.s_axi_awaddr;
         m_item.data = m_vif.s_axi_wdata;
         m_item.write = 1;
@@ -96,8 +96,9 @@ task axi_lite_monitor::collect_item();
     // READ
     begin
      forever begin
-     @(negedge m_vif.clock iff m_vif.s_axi_arready === 1);
+       @(posedge m_vif.clock iff m_vif.s_axi_arready === 1);
        m_item.addr = m_vif.s_axi_araddr;
+       @(posedge m_vif.clock iff m_vif.s_axi_rvalid === 1);
        m_item.data = m_vif.s_axi_rdata;
        m_item.read = 1; 
        `uvm_info(get_type_name(), " --- READ --- ", UVM_LOW)
