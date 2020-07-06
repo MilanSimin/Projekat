@@ -27,7 +27,7 @@
 using namespace cv;
 using namespace std;
 
-int picture[120*120];
+
 
 void error(const char *msg)
 {
@@ -106,7 +106,6 @@ void chooseImage (int select){
 	}
 	for (int x=0; x<newImage.cols; x++) {
 		for (int y=0; y<newImage.rows; y++) {
-			picture[y+x*newImage.cols]= newImage.at<uchar>(x,y);
 			fprintf(fp,"%d ", newImage.at<uchar>(x,y));
 		}
 		fprintf(fp,"\n");
@@ -135,7 +134,7 @@ int getLines()
 			lines++;
 		}
 	}
-	fclose(fl);
+	fclose(f);
 	return lines;
 }
 int getColumns()
@@ -251,44 +250,39 @@ int main(int argc, char *argv[])
 	break;
 
 	}
-
-
-//**************************************************LINES AND COLUMNS*******************************************************
-
-	lines = getLines();
-	columns = getColumns();
-
 //**************************************************SENDING IMAGE TO SERVER*************************************************
 	cout<<"sending image to server"<<endl;
 	FILE *f;
 	int words = lines*columns, k=0;
 	char c, ch;
-	//f=fopen("image.txt","r");
-	/*while((c=fgetc(f))!=EOF)			
+	f=fopen("image.txt","r");
+	while((c=fgetc(f))!=EOF)			
 	{	
 		fscanf(f, "%d", temp);
-		//if(isspace(c) || c=='\n')
+		if(isspace(c) || c=='\n')
 		words++;	
-	}*/
-	//printf("Words = %d \n", words);	
+	}
+	printf("Words = %d \n", words);	
 	write(sockfd, &words, sizeof(int));
-     	//rewind(f);
-	/*while(ch != EOF)
+     	rewind(f);
+	while(ch != EOF)
 	{	
 		fscanf(f , "%d" , &temp2[k]);		
 		ch= fgetc(f);		
 		k++;	
-	}*/
-	write(sockfd,picture,sizeof(int)*words);
-	//write(sockfd,temp2,sizeof(int)*words);
-	/*if(fclose(f) == EOF)
+	}
+	
+	write(sockfd,temp2,sizeof(int)*words);
+	if(fclose(f) == EOF)
 	{
 		printf("cannot close final_image.txt\n");
-	}*/
+	}
 	printf("The file was sent successfully to server\n");
 //************************************************ Sending lines and columns ********************************************
 	cout<<"lines and columns sent to server"<<endl;
 	int lines,columns;
+	lines = getLines();
+	columns = getColumns();
 
 	//cout<<"lines is "<<lines<<endl;
 	write(sockfd, &lines, sizeof(int));
@@ -303,12 +297,12 @@ int main(int argc, char *argv[])
 	FILE *fs;
         int h = 0, num = 0;
 	read(sockfd, &num, sizeof(int));
-	/*fs = fopen("final_image.txt","w");
+	fs = fopen("final_image.txt","w");
 	if (fs==NULL)
 	{
 		printf("cannot open final_image.txt\n");
 		return -1;
-	}*/
+	}
 	int pom[num];
 	bzero(pom,num);
 	char *buff = (char *)pom;
@@ -319,22 +313,22 @@ int main(int argc, char *argv[])
 		rem -= recvd;
 		buff += recvd;
 	}
-	/*while(h != num)
+	while(h != num)
        	{
 	   	fprintf(fs, "%d ", pom[h]);
 		h++;
 		if((h%(lines-1)) == 0){
 			fprintf(fs,"\n");
 		}
-	}*/
+	}
 	printf("The new file created is final_image.txt\n");
 	
-	/*if(fclose(fs) == EOF)
+	if(fclose(fs) == EOF)
 	{
 		printf("cannot close final_image.txt\n");
 	}
 	
-	close(sockfd);*/
+	close(sockfd);
 	Mat final_picture((columns-1),(lines-1),CV_8U);
 
 	for(int x=0; x<columns-1;x++){
@@ -346,7 +340,7 @@ int main(int argc, char *argv[])
 
 
 	namedWindow("Final image", WINDOW_AUTOSIZE );
-	imshow("Final image", picture );
+	imshow("Final image", final_picture );
 	waitKey(3000);
 	
 

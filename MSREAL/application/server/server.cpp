@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
         int ch = 0, words;
 	int image[MAX_BRAM_SIZE];
 	bzero(image,MAX_BRAM_SIZE);
-       // fp = fopen("image.txt","w");
+        fp = fopen("image.txt","w");
 	read(newsockfd, &words, sizeof(int));
 	cout<<"Reading image"<<endl;
 	char *buff = (char *)image;
@@ -115,14 +115,14 @@ int main(int argc, char *argv[])
 		buff += recvd;
 	}
 
-	/*while(ch != words)
+	while(ch != words)
        	{
 	   	fprintf(fp, "%d, ", image[ch]);
 		ch++;
 		if((ch%120) == 0){
 			fprintf(fp,"\n");
 		}
-	}*/
+	}
 	printf("The new file created is image.txt\n");
 
 	fr = open("/dev/bram_image", O_RDWR|O_NDELAY);
@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
 	}
 	cout<<"image read from bram to final_image"<<endl;
 
-	/*FILE *fm;
+	FILE *fm;
 	fm =fopen("final_image.txt","w");
 	if (fm==NULL)
 	{
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 	{
 		printf("cannot close final_image.txt\n");
 		return -1;
-	}*/
+	}
 
 //**************************************************SENDING FILE TO CLIENT**********************************************************
 	cout<<"sending final_image.txt to client"<<endl;	
@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
 	int num = lines*columns-2, x=0;
 	int pom[120*120], pom2[120*120];
 	int  h;
-	/*f=fopen("final_image.txt","r");
+	f=fopen("final_image.txt","r");
 	if(f==NULL){
 		cout<<"cannot open final_image.txt"<<endl;
 		return -1;
@@ -246,14 +246,14 @@ int main(int argc, char *argv[])
 		fscanf(f, "%d", pom);
 		num++;
 		h=fgetc(f);	
-	}*/
+	}
 	write(newsockfd, &num, sizeof(int));
-     	/*rewind(f);
+     	rewind(f);
 	while(x != num)
 	{
 		fscanf(f , "%d" , &pom2[x]);
 		x++;
-	}*/
+	}
 	write(newsockfd,pom2,sizeof(int)*num);
 	printf("The file was sent successfully\n");
 	
