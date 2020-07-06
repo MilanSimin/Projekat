@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
 //**************************************************SENDING IMAGE TO SERVER*************************************************
 	cout<<"sending image to server"<<endl;
 	FILE *f;
-	int words = lines*columns, k=0;
+	int words = 0, k=0;
 	char c, ch;
 	f=fopen("image.txt","r");
 	while((c=fgetc(f))!=EOF)			
