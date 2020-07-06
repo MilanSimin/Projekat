@@ -24,7 +24,7 @@ class conv_ip_scoreboard extends uvm_scoreboard;
   int count_of_data_c; // brojac za C
   int columns, lines; 
   int start_count = 0; //broj konvolucija
-  bit start_happend = 0;
+  bit start_happend = 0, ready;
   string s;
   
 	uvm_analysis_imp_axi_lite#(axi_lite_item, conv_ip_scoreboard) m_axi_lite;
@@ -117,12 +117,15 @@ function void conv_ip_scoreboard::write_axi_lite(axi_lite_item m_axi_item);
   else if(axi_clone_item.addr == READY_REG_ADDR) begin
    //cekiranje reset vrednosti
    if(m_cfg.reset_happend == 1 && axi_clone_item.read == 1) begin
-    if(axi_clone_item.data !== 0) begin
-     `uvm_error(get_type_name(), $sformatf("Reset value of READY should be 0, but it is %d.",axi_clone_item.data))
+     if(axi_clone_item.data !== 1) begin
+      `uvm_error(get_type_name(), $sformatf("Reset value of READY should be 1, but it is %d.",axi_clone_item.data))
     end
     else begin 
-     `uvm_info(get_type_name(), "Reset value for READY is 0.", UVM_LOW)
+     `uvm_info(get_type_name(), "Reset value for READY is 1.", UVM_LOW)
     end
+   end
+   if(axi_clone_item.data == 1) begin
+    ready = 1;
    end
   end
 
@@ -193,6 +196,9 @@ function void conv_ip_scoreboard::write_bram_c(bram_c_item m_bram_c_item);
   //ako nisam primila start, a dobila sam rezultat -> error
  if(start_happend == 0) begin
    `uvm_error(get_type_name, "Convolution executed but wasn't started")
+  end
+  if(ready !== 1) begin
+   `uvm_error(get_type_name(), "Ready wasn't at 1. Previous convolution was still in progress.")
   end
   //provera validnosti podatka (da li je enable na 1)
    if(bram_c_clone.en_c !== 1) begin 

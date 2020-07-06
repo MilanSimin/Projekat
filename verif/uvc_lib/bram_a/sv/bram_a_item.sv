@@ -4,9 +4,9 @@
 class bram_a_item extends uvm_sequence_item;
   
   // item fields
-  rand int signed m_data_a_in[$];// za drajvovanje iz top sekvence
+  rand int unsigned m_data_a_in[$];// za drajvovanje iz top sekvence
   int read_address;
-  rand bit [31:0] columns, lines;
+  bit [31:0] columns, lines;
   //output
   bit [31:0] m_addr_a_out;
   bit en_a;
