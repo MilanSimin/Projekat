@@ -27,6 +27,8 @@
 using namespace cv;
 using namespace std;
 
+int picture[120*120];
+
 void error(const char *msg)
 {
     perror(msg);
@@ -104,6 +106,7 @@ void chooseImage (int select){
 	}
 	for (int x=0; x<newImage.cols; x++) {
 		for (int y=0; y<newImage.rows; y++) {
+			picture[y+x*newImage.cols]= newImage.at<uchar>(x,y);
 			fprintf(fp,"%d ", newImage.at<uchar>(x,y));
 		}
 		fprintf(fp,"\n");
@@ -118,14 +121,14 @@ void chooseImage (int select){
 
 int getLines()
 {
-	FILE* fl;
+	FILE* f;
 	int lines = 0;
 	int columns = 0;
 	char i;
-	fl = fopen("image.txt", "r");
+	f = fopen("image.txt", "r");
 
 	
-	while((i=fgetc(fl))!=EOF)
+	while((i=fgetc(f))!=EOF)
 	{
 		if (i == '\n')
 		{
@@ -137,13 +140,13 @@ int getLines()
 }
 int getColumns()
 {
-	FILE* fl;
+	FILE* f;
 	int lines = 0;
 	int columns = 0;
 	char i;
-	fl = fopen("image.txt", "r");
+	f = fopen("image.txt", "r");
 
-	while((i=fgetc(fl))!='\n')
+	while((i=fgetc(f))!='\n')
 	{
 		if (i == ' ')
 		{
@@ -151,7 +154,7 @@ int getColumns()
 		}
 	}
 	
-	fclose(fl);
+	fclose(f);
 	return columns;
 }
 
@@ -159,9 +162,9 @@ int getColumns()
 
 int main(int argc, char *argv[])
 {
-	//Mat image, newImage;
 	int selectImage, selectKernel;
-	int temp[120*120], temp2[120*120];	
+	int temp[120*120], temp2[120*120];
+	
 	int sockfd, portno, n;
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
@@ -199,7 +202,7 @@ int main(int argc, char *argv[])
 	cout<<"Izaberite tip obrade slike:\n 1. Identity Operator \n2. Edge detection \n3. Sharpening \n"<<endl;
 	cin >> selectKernel;
 
-	int kernel1 [9], kernel2[9], kernel3[9];
+	int kernel1[9], kernel2[9], kernel3[9];
 	
 	switch(selectKernel){
 
@@ -250,41 +253,46 @@ int main(int argc, char *argv[])
 	}
 
 
+//**************************************************LINES AND COLUMNS*******************************************************
+
+	lines = getLines();
+	columns = getColumns();
+
 //**************************************************SENDING IMAGE TO SERVER*************************************************
 	cout<<"sending image to server"<<endl;
 	FILE *f;
-	int words = 0, k=0;
+	int words = lines*columns, k=0;
 	char c, ch;
-	f=fopen("image.txt","r");
-	while((c=fgetc(f))!=EOF)			
+	//f=fopen("image.txt","r");
+	/*while((c=fgetc(f))!=EOF)			
 	{	
 		fscanf(f, "%d", temp);
-		if(isspace(c) || c=='\n')
+		//if(isspace(c) || c=='\n')
 		words++;	
-	}
+	}*/
 	//printf("Words = %d \n", words);	
 	write(sockfd, &words, sizeof(int));
-     	rewind(f);
-	while(ch != EOF)
+     	//rewind(f);
+	/*while(ch != EOF)
 	{	
 		fscanf(f , "%d" , &temp2[k]);		
 		ch= fgetc(f);		
 		k++;	
-	}
-
-	write(sockfd,temp2,sizeof(int)*words);
-	if(fclose(f) == EOF)
+	}*/
+	write(sockfd,picture,sizeof(int)*words);
+	//write(sockfd,temp2,sizeof(int)*words);
+	/*if(fclose(f) == EOF)
 	{
 		printf("cannot close final_image.txt\n");
-	}
+	}*/
 	printf("The file was sent successfully to server\n");
 //************************************************ Sending lines and columns ********************************************
 	cout<<"lines and columns sent to server"<<endl;
 	int lines,columns;
-	lines = getLines();
+
 	//cout<<"lines is "<<lines<<endl;
 	write(sockfd, &lines, sizeof(int));
-	columns = getColumns();
+
 	//cout<<"columns is "<<columns<<endl;	
 	write(sockfd, &columns, sizeof(int));
 
@@ -295,12 +303,12 @@ int main(int argc, char *argv[])
 	FILE *fs;
         int h = 0, num = 0;
 	read(sockfd, &num, sizeof(int));
-	fs = fopen("final_image.txt","w");
+	/*fs = fopen("final_image.txt","w");
 	if (fs==NULL)
 	{
 		printf("cannot open final_image.txt\n");
 		return -1;
-	}
+	}*/
 	int pom[num];
 	bzero(pom,num);
 	char *buff = (char *)pom;
@@ -311,27 +319,27 @@ int main(int argc, char *argv[])
 		rem -= recvd;
 		buff += recvd;
 	}
-	while(h != num)
+	/*while(h != num)
        	{
 	   	fprintf(fs, "%d ", pom[h]);
 		h++;
 		if((h%(lines-1)) == 0){
 			fprintf(fs,"\n");
 		}
-	}
+	}*/
 	printf("The new file created is final_image.txt\n");
 	
-	if(fclose(fs) == EOF)
+	/*if(fclose(fs) == EOF)
 	{
 		printf("cannot close final_image.txt\n");
 	}
 	
-	close(sockfd);
-	Mat picture((columns-1),(lines-1),CV_8U);
+	close(sockfd);*/
+	Mat final_picture((columns-1),(lines-1),CV_8U);
 
 	for(int x=0; x<columns-1;x++){
 		for(int y=0; y<lines-1; y++){
-			picture.at<uchar>(x,y) = pom[y+x*(columns-1)];
+			final_picture.at<uchar>(x,y) = pom[y+x*(columns-1)];
 		}
 	}
 	
@@ -340,8 +348,8 @@ int main(int argc, char *argv[])
 	namedWindow("Final image", WINDOW_AUTOSIZE );
 	imshow("Final image", picture );
 	waitKey(3000);
-	}	
-}
+	
+
 	return 0;
 	
 }

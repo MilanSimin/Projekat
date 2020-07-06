@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
 	int lines,columns,start=1;
 	int kernel[9], i =0, j=0;
-	int *final_image;
+	int *final_image, *ifs;
 	int fk, fb, fc, fr;
 	int *k, *b, *c, *r;
 
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
         int ch = 0, words;
 	int image[MAX_BRAM_SIZE];
 	bzero(image,MAX_BRAM_SIZE);
-        fp = fopen("image.txt","w");
+       // fp = fopen("image.txt","w");
 	read(newsockfd, &words, sizeof(int));
 	cout<<"Reading image"<<endl;
 	char *buff = (char *)image;
@@ -115,17 +115,14 @@ int main(int argc, char *argv[])
 		buff += recvd;
 	}
 
-	cout<<"while loop"<<endl;
-
-
-	while(ch != words)
+	/*while(ch != words)
        	{
 	   	fprintf(fp, "%d, ", image[ch]);
 		ch++;
 		if((ch%120) == 0){
 			fprintf(fp,"\n");
 		}
-	}
+	}*/
 	printf("The new file created is image.txt\n");
 
 	fr = open("/dev/bram_image", O_RDWR|O_NDELAY);
@@ -148,14 +145,14 @@ int main(int argc, char *argv[])
 		printf("cannot close /dev/bram_image for write\n");
 		return -1;
 	}
+	
 	cout<<"image sent to bram_image"<<endl;
 
 //****************************************READING LINES AND COLUMNS AND SENDING TO IMAGE_CONV*************************************
 	read(newsockfd, &lines, sizeof(int));
 	read(newsockfd, &columns, sizeof(int));
 	cout<<"lines and columns read"<<endl;
-	//cout<<"lines is "<<lines<<endl;
-	//cout<<"columns is "<<columns<<endl;
+
 	int ifs_reg[4]={columns,lines,start,0};
 
 	fc = open("/dev/image_conv", O_RDWR|O_NDELAY);
@@ -179,6 +176,7 @@ int main(int argc, char *argv[])
 		printf("Cannot close /dev/image_conv for write\n");
 		return -1;
 	}
+
 	cout<<"data sent to image_conv" <<endl;
 //**************************************************READING FROM BRAM_AFTER_CONV***************************************************
 	cout<<"reading image from bram_after_conv"<<endl;
@@ -206,7 +204,7 @@ int main(int argc, char *argv[])
 	}
 	cout<<"image read from bram to final_image"<<endl;
 
-	FILE *fm;
+	/*FILE *fm;
 	fm =fopen("final_image.txt","w");
 	if (fm==NULL)
 	{
@@ -230,15 +228,15 @@ int main(int argc, char *argv[])
 	{
 		printf("cannot close final_image.txt\n");
 		return -1;
-	}
+	}*/
 
 //**************************************************SENDING FILE TO CLIENT**********************************************************
 	cout<<"sending final_image.txt to client"<<endl;	
 	FILE *f;
-	int num = 0, x=0;
+	int num = lines*columns-2, x=0;
 	int pom[120*120], pom2[120*120];
 	int  h;
-	f=fopen("final_image.txt","r");
+	/*f=fopen("final_image.txt","r");
 	if(f==NULL){
 		cout<<"cannot open final_image.txt"<<endl;
 		return -1;
@@ -248,14 +246,14 @@ int main(int argc, char *argv[])
 		fscanf(f, "%d", pom);
 		num++;
 		h=fgetc(f);	
-	}
+	}*/
 	write(newsockfd, &num, sizeof(int));
-     	rewind(f);
+     	/*rewind(f);
 	while(x != num)
 	{
 		fscanf(f , "%d" , &pom2[x]);
 		x++;
-	}
+	}*/
 	write(newsockfd,pom2,sizeof(int)*num);
 	printf("The file was sent successfully\n");
 	
